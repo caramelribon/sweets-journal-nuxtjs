@@ -1,5 +1,6 @@
 <template>
   <div>
+    <p>login中</p>
     <Nuxt />
   </div>
 </template>
