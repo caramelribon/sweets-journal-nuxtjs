@@ -1,12 +1,17 @@
 <template>
-  <app-top></app-top>
+  <div>
+    <app-top></app-top>
+    <app-message></app-message>
+  </div>
 </template>
 
 <script>
-import appTop from '~/components/appTop.vue'
+import AppMessage from '~/components/appMessage.vue'
+import AppTop from '~/components/appTop.vue'
 export default {
   comments: {
-    appTop,
+    AppTop,
+    AppMessage,
   }
 }
 </script>
