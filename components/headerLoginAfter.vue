@@ -35,7 +35,7 @@
                 <div class="mt-2 mx-3 border-b text-center">
                   <i class="user-icon fas fa-user-circle fa-4x"></i>
                   <p class="text-center py-1 text-2xl user-name-login">
-                    NAME
+                    {{ user.name }}
                   </p>
                 </div>
                 <!-- Button Area (ボタンエリア) -->
@@ -80,6 +80,7 @@
                             hover:bg-beige
                           "
                           type="button"
+                          @click="signOut"
                         >
                           Logout
                         </button>
@@ -113,7 +114,13 @@
 </template>
 
 <script>
+import firebase from "~/plugins/firebase";
 export default {
+  computed: {
+    user() {
+      return this.$store.state.user;
+    },
+  },
   data() {
     return {
       userInfo: false,
@@ -131,6 +138,20 @@ export default {
       if (this.userInfo === true) {
         this.userInfo = false;
       }
+    },
+    signOut() {
+      firebase
+        .auth()
+        .signOut()
+        .then(() => {
+          console.log("ログアウトしました");
+          this.$store.commit("signOut");
+          this.$router.push("/");
+        })
+        .catch(error => {
+          console.log(error);
+          console.log("ログアウトに失敗しました");
+        });
     },
   },
 };
