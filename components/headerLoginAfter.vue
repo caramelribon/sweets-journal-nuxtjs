@@ -35,7 +35,7 @@
                 <div class="mt-2 mx-3 border-b text-center">
                   <i class="user-icon fas fa-user-circle fa-4x"></i>
                   <p class="text-center py-1 text-2xl user-name-login">
-                    {{ user.name }}
+                    {{ $store.state.user.name }}
                   </p>
                 </div>
                 <!-- Button Area (ボタンエリア) -->
@@ -116,11 +116,6 @@
 <script>
 import firebase from "~/plugins/firebase";
 export default {
-  computed: {
-    user() {
-      return this.$store.state.user;
-    },
-  },
   data() {
     return {
       userInfo: false,
@@ -157,34 +152,21 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Antic+Didone&family=Elsie&family=Italiana&family=Kaisei+Decol:wght@400;500;700&family=Lobster&family=Lora:wght@400;700&display=swap");
 header {
   position: fixed;
 }
 /* text font */
-.lora {
-  font-family: "Lora", serif;
-}
 .lora-bold {
   font-family: "Lora", serif;
   font-weight: bold;
-}
-.lobster {
-  font-family: "Antic Didone", serif;
 }
 .kaisei-medium {
   font-family: "Kaisei Decol", serif;
   font-weight: medium;
 }
 /* user name */
-.user-name {
-  color: #f2ebe5;
-  font-family: "Lora", serif;
-  font-weight: bold;
-  text-shadow: 0 1px #8a8682, 0 2px #87837f, 0 3px #85817d, 0 4px #736f6a,
-    0 5px #75716d, 0 6px 5px #706c68;
-}
 .user-name-login {
   color: #f2ebe5;
   font-family: "Lora", serif;
@@ -206,22 +188,6 @@ header {
   border-bottom: 7px solid transparent;
   right: -12px;
   top: 10%;
-  content: "";
-  position: absolute;
-}
-.userinfo-nologin {
-  background-color: #8d8985;
-  width: 150px;
-  height: 210px;
-  right: 130%;
-  top: 0;
-}
-.userinfo-nologin::after {
-  border-left: 12px solid #8d8985;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  right: -12px;
-  top: 5%;
   content: "";
   position: absolute;
 }
@@ -299,18 +265,6 @@ input[type="checkbox"] {
 #actionMenuButton:checked + .actions-menu > .btn--home {
   top: -5px;
   left: -60px;
-}
-.b-home {
-  color: #f2ebe5;
-}
-.b-user {
-  color: #4f5666;
-}
-.b-activity {
-  color: #f2ebe5;
-}
-.container {
-  position: relative;
 }
 .user-icon {
   color: #f2ebe5;
