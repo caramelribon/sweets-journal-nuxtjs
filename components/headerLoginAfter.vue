@@ -1,8 +1,8 @@
 <template>
   <!-- header (ヘッダー) -->
-  <header class="header w-full h-5">
+  <header class="header w-full h-5 z-10">
     <!-- login -->
-    <nav id="header" class="z-30">
+    <nav id="header">
       <div class="flex justify-end items-center px-5">
         <!-- Menu Button (メニューボタン) -->
         <div class="menu">

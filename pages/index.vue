@@ -1,9 +1,12 @@
 <template>
-  <p v-if="$store.state.user.login">ログイン中</p>
-  <p v-else>ログインしていない</p>
+  <app-top></app-top>
 </template>
 
 <script>
+import appTop from '~/components/appTop.vue'
 export default {
+  comments: {
+    appTop,
+  }
 }
 </script>

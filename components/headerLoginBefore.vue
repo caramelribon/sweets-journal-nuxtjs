@@ -1,8 +1,8 @@
 <template>
   <!-- header (ヘッダー) -->
-  <header class="header w-full">
+  <header class="header w-full z-10">
     <!-- Not login -->
-    <nav id="header" class="z-30">
+    <nav id="header">
       <div class="flex justify-end items-center px-3 py-3">
         <div class="user-button">
           <!-- User Button (ユーザボタン) -->
@@ -13,7 +13,6 @@
             v-if="userInfoNoLogin"
             class="
               absolute
-              z-10
               animate__animated animate__fadeIn animate__faster
             "
           >
@@ -44,6 +43,7 @@
                           hover:bg-white
                         "
                         type="button"
+                        @click="closeBalloonNoLogin"
                       >
                         Login
                       </button>
