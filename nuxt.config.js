@@ -30,7 +30,10 @@ export default {
   css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: ["~/plugins/firebase.js"],
+  plugins: [
+    "~/plugins/firebase.js",
+    { src: "~/plugins/swiper", mode: "client" },
+  ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -57,9 +60,9 @@ export default {
   },
 
   proxy: {
-    '/api/': {
-      target: 'http://webservice.recruit.co.jp',
-      pathRewrite: { '^/api/': '/' },
+    "/api/": {
+      target: "http://webservice.recruit.co.jp",
+      pathRewrite: { "^/api/": "/" },
     },
   },
 

@@ -3,6 +3,7 @@
     <app-top></app-top>
     <app-message></app-message>
     <shop-search></shop-search>
+    <app-ranking></app-ranking>
     <app-footer></app-footer>
   </div>
 </template>
@@ -11,12 +12,14 @@
 import AppMessage from '~/components/appMessage.vue'
 import AppTop from '~/components/appTop.vue'
 import AppFooter from '~/components/appFooter.vue'
+import AppRanking from '~/components/appRanking.vue'
 import ShopSearch from '~/components/shopSearch.vue'
 export default {
   comments: {
     AppTop,
     AppMessage,
     AppFooter,
+    AppRanking,
     ShopSearch,
   }
 }
