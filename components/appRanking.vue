@@ -47,13 +47,230 @@
           </div>
         </div>
       </div>
+      <!-- Favorite -->
+      <div class="ranking pb-10">
+        <p class="ranking-title p-5 text-center">Favorits</p>
+        <swiper :options="swiperOption">
+          <swiper-slide v-for="(favorite, index) in favorites" :key="index">
+            <div class="flex items-start justify-center flex-row flex-wrap p-5">
+              <div class="ranking-fav">
+                <div class="ranking-no my-3">
+                  <p class="parisienne text-center text-nvybrown text-5xl">
+                    No.{{ favorite.no }}
+                  </p>
+                </div>
+                <!-- shop layout -->
+                <div class="bg-none">
+                  <!-- shop image -->
+                  <div class="ranking-layout">
+                    <div>
+                      <img
+                        :src="favorite.photo"
+                        class="photo-position"
+                        width="300"
+                        height="300"
+                      />
+                    </div>
+                    <!-- shop description and button(favorite and mark) -->
+                    <div class="place-data">
+                      <div class="shop-description">
+                        <!-- shop name -->
+                        <div class="place-info m-2 text-center">
+                          <div class="my-1">
+                            <p class="text-navyblue text-center kaisei-medium">
+                              {{ favorite.name }}
+                            </p>
+                            <p
+                              class="
+                                text-navyblue text-center
+                                kaisei-medium
+                                text-xs
+                                my-2
+                              "
+                            >
+                              {{ favorite.catchcopy }}
+                            </p>
+                          </div>
+                          <p class="text-navyblue kaisei-medium text-xs my-2">
+                            {{ favorite.access }}
+                          </p>
+                        </div>
+                      </div>
+                      <ul class="card-information my-3">
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          {{ favorite.address }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          予算:{{ favorite.average }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          Open:{{ favorite.open }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          <a
+                            :href="favorite.url"
+                            target="_blank"
+                            class="text-sm text-lgtpink my-2"
+                          >
+                            さらに詳しい情報こちら
+                            <i
+                              class="fas fa-external-link-alt icon-color-blue"
+                            ></i>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </swiper-slide>
+        </swiper>
+      </div>
+      <!-- Bookmark -->
+      <div class="ranking pb-10">
+        <p class="ranking-title p-5 text-center">Marks</p>
+        <swiper :options="swiperOption">
+          <swiper-slide v-for="(bookmark, index) in bookmarks" :key="index">
+            <div class="flex items-start justify-center flex-row flex-wrap p-5">
+              <div class="ranking-fav">
+                <div class="ranking-no my-3">
+                  <p class="parisienne text-center text-nvybrown text-5xl">
+                    No.{{ bookmark.no }}
+                  </p>
+                </div>
+                <!-- shop layout -->
+                <div class="bg-none">
+                  <!-- shop image -->
+                  <div class="ranking-layout">
+                    <div>
+                      <img
+                        :src="bookmark.photo"
+                        class="photo-position"
+                        width="300"
+                        height="300"
+                      />
+                    </div>
+                    <!-- shop description and button(favorite and mark) -->
+                    <div class="place-data">
+                      <div class="shop-description">
+                        <!-- shop name -->
+                        <div class="place-info m-2 text-center">
+                          <div class="my-1">
+                            <p class="text-navyblue text-center kaisei-medium">
+                              {{ bookmark.name }}
+                            </p>
+                            <p
+                              class="
+                                text-navyblue text-center
+                                kaisei-medium
+                                text-xs
+                                my-2
+                              "
+                            >
+                              {{ bookmark.catchcopy }}
+                            </p>
+                          </div>
+                          <p class="text-navyblue kaisei-medium text-xs my-2">
+                            {{ bookmark.access }}
+                          </p>
+                        </div>
+                      </div>
+                      <ul class="card-information my-3">
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          {{ bookmark.address }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          予算:{{ bookmark.average }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          Open:{{ bookmark.open }}
+                        </li>
+                        <li class="text-navyblue kaisei-medium text-xs mx-8">
+                          <a
+                            :href="bookmark.url"
+                            target="_blank"
+                            class="text-sm text-lgtpink my-2"
+                          >
+                            さらに詳しい情報こちら
+                            <i
+                              class="fas fa-external-link-alt icon-color-blue"
+                            ></i>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </swiper-slide>
+        </swiper>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-// import firebase from "~/plugins/firebase/";
+import { getRankingTop } from "~/services/firebaseService";
 export default {
+  data() {
+    return {
+      bookmarks: [],
+      favorites: [],
+      swiperOption: {
+        speed: 1000,
+        spaceBetween: 30,
+        centeredSlides: true,
+        loop: true,
+        autoplay: {
+          delay: 8000,
+          disableOnInteraction: false,
+        },
+      },
+    };
+  },
+  async created() {
+    // Ranking上位のお店の情報を取得
+    const rankingFav = await getRankingTop("favorite").catch((err) => {
+      console.log("Can not get data of favorite ranking", err);
+    });
+    for (let i = 0; i < rankingFav.length; i += 1) {
+      const dataFav = rankingFav[i];
+      const placeData = {
+        id: dataFav.id,
+        name: dataFav.name,
+        address: dataFav.address,
+        access: dataFav.access,
+        average: dataFav.average,
+        catchcopy: dataFav.catchcopy,
+        open: dataFav.open,
+        photo: dataFav.photo,
+        url: dataFav.url,
+        no: i + 1,
+      };
+      this.favorites.push(placeData);
+    }
+    const rankingBm = await getRankingTop("mark").catch((err) => {
+      console.log("Can not get data of bookmark ranking", err);
+    });
+    for (let i = 0; i < rankingBm.length; i += 1) {
+      const dataBm = rankingBm[i];
+      const placeData = {
+        id: dataBm.id,
+        name: dataBm.name,
+        address: dataBm.address,
+        access: dataBm.access,
+        average: dataBm.average,
+        catchcopy: dataBm.catchcopy,
+        open: dataBm.open,
+        photo: dataBm.photo,
+        url: dataBm.url,
+        no: i + 1,
+      };
+      this.bookmarks.push(placeData);
+    }
+  },
 };
 </script>
 

@@ -51,7 +51,7 @@ export const registerPlace = async (place, action) => {
       url: place.url,
       favorite_count: 1,
       bookmark_count: 0,
-      create_at: firebase.firestore.FieldValue.serverTimestamp(),
+      created_at: firebase.firestore.FieldValue.serverTimestamp(),
     });
   } else {
     await placeRef.doc(place.id).set({
@@ -66,7 +66,7 @@ export const registerPlace = async (place, action) => {
       url: place.url,
       favorite_count: 0,
       bookmark_count: 1,
-      create_at: firebase.firestore.FieldValue.serverTimestamp(),
+      created_at: firebase.firestore.FieldValue.serverTimestamp(),
     });
   }
 };
@@ -94,7 +94,7 @@ export const registerActivity = async (placeId, userId, userName, actionName) =>
     username: userName,
     place_id: placeId,
     action: actionName,
-    create_at: firebase.firestore.FieldValue.serverTimestamp(),
+    created_at: firebase.firestore.FieldValue.serverTimestamp(),
   });
   // activityCountを+1して更新
   await activeCountRef
@@ -197,3 +197,37 @@ export const deleteAction = async (placeId, userId, action) => {
   }
   await delActivity(placeId, userId, action);
 };
+
+export const getRankingTop = async (action) => {
+  const rankingData = [];
+  if (action === 'favorite') {
+    await placeRef
+      .orderBy('favorite_count', 'desc')
+      .orderBy('created_at', 'desc')
+      .limit(7)
+      .get()
+      .then((snapShot) => {
+        snapShot.forEach((doc) => {
+          if (!doc.data()) {
+            return;
+          }
+          rankingData.push((doc.data()));
+        });
+      });
+  } else {
+    await placeRef
+      .orderBy("bookmark_count", "desc")
+      .orderBy("created_at", "desc")
+      .limit(7)
+      .get()
+      .then((snapShot) => {
+        snapShot.forEach((doc) => {
+          if (!doc.data()) {
+            return;
+          }
+          rankingData.push(doc.data());
+        });
+      });
+  }
+  return rankingData;
+}

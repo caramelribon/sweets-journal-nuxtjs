@@ -59,6 +59,7 @@ export const actions = {
       name: userData.displayName,
     });
   },
+  // ログインしたユーザの保存しているお店の取得
   getUserServePlace({ commit }, userId) {
     getUserServePlaceData(userId, 'favorite').then((result) => {
       commit("registerUserFavPlace", result);
@@ -153,11 +154,9 @@ export const mutations = {
   },
   registerUserFavPlace: function (state, payload) {
     state.userFav = payload;
-    console.log(state.userFav);
   },
   registerUserBmPlace: function (state, payload) {
     state.userBm = payload;
-    console.log(state.userBm);
   },
   registerFav: function (state, payload) {
     state.userFav.push(payload.id);
