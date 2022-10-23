@@ -310,9 +310,18 @@
                   <!-- favorite button -->
                   <div class="flex justify-center items-center">
                     <button
+                      @click="$store.dispatch('onFavorite', place)"
                       :disabled="!$store.state.user.login"
+                      v-if="$store.state.userFav.indexOf(place.id) === -1"
                     >
                       <i class="far fa-heart fa-lg"></i>
+                    </button>
+                    <button
+                      @click="$store.dispatch('delFavorite', place)"
+                      :disabled="!$store.state.user.login"
+                      v-else
+                    >
+                      <i class="fas fa-heart fa-lg liked"></i>
                     </button>
                   </div>
                   <!-- mark button -->
