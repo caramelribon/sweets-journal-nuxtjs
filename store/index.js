@@ -1,9 +1,13 @@
 import firebase from "~/plugins/firebase";
 import {
-  registerPlace,
+  registerFavPlace,
+  registerBmPlace,
   registerFavActivity,
+  registerBmActivity,
   registerUserFavPlace,
+  registerUserBmPlace,
   deleteFavorite,
+  deleteBookmark,
 } from "~/services/firebaseService";
 
 const db = firebase.firestore();
@@ -18,7 +22,7 @@ export const state = () => ({
     login: false,
   },
   userFav: [],
-  userBook: [],
+  userBm: [],
 });
 
 export const getters = {
@@ -67,12 +71,12 @@ export const actions = {
         if (doc.exists) {
           // お店の情報がすでに登録されていたら、favorite_countを+1して更新
           const favCount = doc.data().favorite_count + 1;
-          await docRef.update({
+          await placeRef.doc(place.id).update({
             favorite_count: favCount,
           });
         } else {
           // お店の情報が登録されていなかったら、登録
-          await registerPlace(place);
+          await registerFavPlace(place);
         }
         // ユーザIDとお店のIDをfavoritesに登録
         await registerUserFavPlace(place.id, state.user.uid);
@@ -89,6 +93,38 @@ export const actions = {
     // stateのuserFavからplace_idを削除
     commit("deleteFav", place);
   },
+  // 気になる登録機能
+  onBookmark({ commit, state }, place) {
+    // firebase関係
+    placeRef
+      .doc(place.id)
+      .get()
+      .then(async (doc) => {
+        if (doc.exists) {
+          // お店の情報がすでに登録されていたら、bookmark_countを+1して更新
+          const bmCount = doc.data().bookmark_count + 1;
+          await placeRef.doc(place.id).update({
+            bookmark_count: bmCount,
+          });
+        } else {
+          // お店の情報が登録されていなかったら、登録
+          await registerBmPlace(place);
+        }
+        // ユーザIDとお店のIDをfavoritesに登録
+        await registerUserBmPlace(place.id, state.user.uid);
+        // Activityの登録
+        await registerBmActivity(place.id, state.user.uid, state.user.name);
+      });
+    // stateのuserFavに登録
+    commit("registerBm", place);
+  },
+  // 気になる削除機能
+  delBookmark({ commit, state }, place) {
+    // favoritesからユーザIDとお店のIDの削除とActivityの削除
+    deleteBookmark(place.id, state.user.uid);
+    // stateのuserFavからplace_idを削除
+    commit("deleteBm", place);
+  }
 };
 
 export const mutations = {
@@ -112,7 +148,13 @@ export const mutations = {
   registerFav: function (state, payload) {
     state.userFav.push(payload.id);
   },
+  registerBm: function (state, payload) {
+    state.userBm.push(payload.id);
+  },
   deleteFav: function (state, payload) {
     state.userFav = state.userFav.filter((id) => id !== payload.id);
+  },
+  deleteBm: function (state, payload) {
+    state.userBm = state.userBm.filter((id) => id !== payload.id);
   },
 };

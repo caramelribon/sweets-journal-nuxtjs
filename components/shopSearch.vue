@@ -327,9 +327,18 @@
                   <!-- mark button -->
                   <div class="flex justify-center items-center">
                     <button
+                      @click="$store.dispatch('onBookmark', place)"
                       :disabled="!$store.state.user.login"
+                      v-if="$store.state.userBm.indexOf(place.id) === -1"
                     >
                       <i class="far fa-bookmark fa-lg"></i>
+                    </button>
+                    <button
+                      @click="$store.dispatch('delBookmark', place)"
+                      :disabled="!$store.state.user.login"
+                      v-else
+                    >
+                      <i class="fas fa-bookmark fa-lg bookmarked"></i>
                     </button>
                   </div>
                 </div>
@@ -441,7 +450,7 @@ export default {
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
-      await this.$axios.$get( `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=10`)
+      await this.$axios.$get( `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`)
         .then((res) => {
           this.currentState = "IS_FOUND";
           const data = res.results.shop;
