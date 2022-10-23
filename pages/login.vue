@@ -9,7 +9,7 @@
           <div class="w-full max-w-xm">
             <h1 class="m-2">LOGIN</h1>
             <p class="error-login">{{ loginError }}</p>
-            <form class="w-full" @submit.prevent="onLogIn">
+            <form class="w-full" @submit.prevent="onLogin">
               <div class="group mb-4">
                 <i class="fa fa-envelope" aria-hidden="true"></i>
                 <input
@@ -251,7 +251,7 @@ export default {
     };
   },
   methods: {
-    async onLogIn() {
+    async onLogin() {
       this.loginError = "";
       const result = await this.checkValidationLogin();
       if (result === true) {
