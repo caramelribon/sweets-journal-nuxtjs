@@ -1,13 +1,9 @@
 import firebase from "~/plugins/firebase";
 import {
-  registerFavPlace,
-  registerBmPlace,
-  registerFavActivity,
-  registerBmActivity,
-  registerUserFavPlace,
-  registerUserBmPlace,
-  deleteFavorite,
-  deleteBookmark,
+  registerPlace,
+  registerUserPlace,
+  registerActivity,
+  deleteAction,
 } from "~/services/firebaseService";
 
 const db = firebase.firestore();
@@ -76,12 +72,12 @@ export const actions = {
           });
         } else {
           // お店の情報が登録されていなかったら、登録
-          await registerFavPlace(place);
+          await registerPlace(place, 'favorite');
         }
         // ユーザIDとお店のIDをfavoritesに登録
-        await registerUserFavPlace(place.id, state.user.uid);
+        await registerUserPlace(place.id, state.user.uid, 'favorite');
         // Activityの登録
-        await registerFavActivity(place.id, state.user.uid, state.user.name);
+        await registerActivity(place.id, state.user.uid, state.user.name, 'favorite');
       });
     // stateのuserFavに登録
     commit("registerFav", place);
@@ -89,7 +85,7 @@ export const actions = {
   // お気に入り解除機能
   delFavorite({ commit, state }, place) {
     // favoritesからユーザIDとお店のIDの削除とActivityの削除
-    deleteFavorite(place.id, state.user.uid);
+    deleteAction(place.id, state.user.uid, 'favorite');
     // stateのuserFavからplace_idを削除
     commit("deleteFav", place);
   },
@@ -108,20 +104,20 @@ export const actions = {
           });
         } else {
           // お店の情報が登録されていなかったら、登録
-          await registerBmPlace(place);
+          await registerPlace(place, 'mark');
         }
-        // ユーザIDとお店のIDをfavoritesに登録
-        await registerUserBmPlace(place.id, state.user.uid);
+        // ユーザIDとお店のIDをbookmarksに登録
+        await registerUserPlace(place.id, state.user.uid, 'mark');
         // Activityの登録
-        await registerBmActivity(place.id, state.user.uid, state.user.name);
+        await registerActivity(place.id, state.user.uid, state.user.name, 'mark');
       });
     // stateのuserFavに登録
     commit("registerBm", place);
   },
   // 気になる削除機能
   delBookmark({ commit, state }, place) {
-    // favoritesからユーザIDとお店のIDの削除とActivityの削除
-    deleteBookmark(place.id, state.user.uid);
+    // bookmarksからユーザIDとお店のIDの削除とActivityの削除
+    deleteAction(place.id, state.user.uid, 'mark');
     // stateのuserFavからplace_idを削除
     commit("deleteBm", place);
   }
