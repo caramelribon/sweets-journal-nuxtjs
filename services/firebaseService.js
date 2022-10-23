@@ -7,6 +7,36 @@ const placeRef = db.collection("places");
 const activeRef = db.collection("activities");
 const activeCountRef = db.collection("activityCount");
 
+export const getUserServePlaceData = async (userId, action) => {
+  const placeIdData = [];
+  if (action === 'favorite') {
+    await favRef
+      .where('user_id', '==', userId)
+      .get()
+      .then((snapShot) => {
+        snapShot.forEach((doc) => {
+          if (!doc.data()) {
+            return;
+          }
+          placeIdData.push(doc.data().place_id);
+        });
+      });
+  } else {
+    await bmRef
+      .where("user_id", "==", userId)
+      .get()
+      .then((snapShot) => {
+        snapShot.forEach((doc) => {
+          if (!doc.data()) {
+            return;
+          }
+          placeIdData.push(doc.data().place_id);
+        });
+      });
+  }
+  return placeIdData;
+}
+
 export const registerPlace = async (place, action) => {
   if (action === 'favorite') {
     await placeRef.doc(place.id).set({

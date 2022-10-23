@@ -4,6 +4,7 @@ import {
   registerUserPlace,
   registerActivity,
   deleteAction,
+  getUserServePlaceData,
 } from "~/services/firebaseService";
 
 const db = firebase.firestore();
@@ -29,7 +30,7 @@ export const getters = {
 
 export const actions = {
   // login機能
-  checkLogin({ commit }) {
+  checkLogin({ commit, dispatch }) {
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
         commit("getData", {
@@ -38,6 +39,7 @@ export const actions = {
           name: user.displayName,
         });
         commit("switchLogin");
+        dispatch("getUserServePlace", user.uid);
       } else {
         commit("deleteLogin");
       }
@@ -55,6 +57,14 @@ export const actions = {
       uid: userData.uid,
       email: userData.email,
       name: userData.displayName,
+    });
+  },
+  getUserServePlace({ commit }, userId) {
+    getUserServePlaceData(userId, 'favorite').then((result) => {
+      commit("registerUserFavPlace", result);
+    });
+    getUserServePlaceData(userId, 'mark').then((result) => {
+      commit("registerUserBmPlace", result);
     });
   },
   // お気に入り登録機能
@@ -140,6 +150,14 @@ export const mutations = {
     state.user.uid = "";
     state.user.email = "";
     state.user.login = false;
+  },
+  registerUserFavPlace: function (state, payload) {
+    state.userFav = payload;
+    console.log(state.userFav);
+  },
+  registerUserBmPlace: function (state, payload) {
+    state.userBm = payload;
+    console.log(state.userBm);
   },
   registerFav: function (state, payload) {
     state.userFav.push(payload.id);
