@@ -21,12 +21,13 @@
             <button class="btn btn--user relative" @click="toggleBalloon">
               <i class="far fa-user fa-2x user-button-color"></i>
             </button>
-            <span
+            <div
               v-if="isUserInfo"
               class="
                 userinfo
                 absolute
-                z-10
+                top-10
+                right-32
                 animate__animated animate__fadeIn animate__faster
               "
             >
@@ -96,7 +97,7 @@
                   </p>
                 </div>
               </div>
-            </span>
+            </div>
             <!-- Activity Button (アクティビティボタン) -->
             <button class="btn btn--activity">
               <button
@@ -173,8 +174,6 @@ header {
   background-color: #8d8985;
   width: 150px;
   height: 210px;
-  right: 200%;
-  top: 100%;
 }
 .userinfo::after {
   border-left: 12px solid #8d8985;

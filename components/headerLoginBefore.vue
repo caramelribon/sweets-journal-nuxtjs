@@ -13,10 +13,12 @@
             v-if="isUserInfo"
             class="
               absolute
+              top-0
+              right-16
               animate__animated animate__fadeIn animate__faster
             "
           >
-            <div class="userinfo-nologin relative">
+            <div class="userinfo-nologin">
               <!-- Guest User (ゲストユーザの印) -->
               <div class="text-center mt-3 mx-3 border-b">
                 <i class="user-icon fas fa-user-circle fa-4x pt-2"></i>
@@ -107,15 +109,13 @@ header {
   background-color: #8d8985;
   width: 150px;
   height: 210px;
-  right: 130%;
-  top: 0;
 }
 .userinfo-nologin::after {
   border-left: 12px solid #8d8985;
   border-top: 7px solid transparent;
   border-bottom: 7px solid transparent;
   right: -12px;
-  top: 5%;
+  top: 10%;
   content: "";
   position: absolute;
 }
