@@ -7,13 +7,7 @@
 </template>
 
 <script>
-import HeaderLoginBefore from '~/components/headerLoginBefore.vue';
-import HeaderLoginAfter from '~/components/headerLoginAfter.vue';
 export default {
-  components: {
-    HeaderLoginAfter,
-    HeaderLoginBefore,
-  }
 };
 </script>
 

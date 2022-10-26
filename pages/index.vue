@@ -9,18 +9,6 @@
 </template>
 
 <script>
-import AppMessage from '~/components/appMessage.vue'
-import AppTop from '~/components/appTop.vue'
-import AppFooter from '~/components/appFooter.vue'
-import AppRanking from '~/components/appRanking.vue'
-import ShopSearch from '~/components/shopSearch.vue'
 export default {
-  comments: {
-    AppTop,
-    AppMessage,
-    AppFooter,
-    AppRanking,
-    ShopSearch,
-  }
 }
 </script>
