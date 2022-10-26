@@ -51,12 +51,15 @@
       <div class="ranking pb-10">
         <p class="ranking-title p-5 text-center">Favorits</p>
         <swiper :options="swiperOption">
-          <swiper-slide v-for="(favorite, index) in favorites" :key="index">
+          <swiper-slide
+            v-for="(place, index) in favoriteRanking"
+            :key="index"
+          >
             <div class="flex items-start justify-center flex-row flex-wrap p-5">
               <div class="ranking-fav">
                 <div class="ranking-no my-3">
                   <p class="parisienne text-center text-nvybrown text-5xl">
-                    No.{{ favorite.no }}
+                    No.{{ place.no }}
                   </p>
                 </div>
                 <!-- shop layout -->
@@ -65,7 +68,7 @@
                   <div class="ranking-layout">
                     <div>
                       <img
-                        :src="favorite.photo"
+                        :src="place.photo"
                         class="photo-position"
                         width="300"
                         height="300"
@@ -78,7 +81,7 @@
                         <div class="place-info m-2 text-center">
                           <div class="my-1">
                             <p class="text-navyblue text-center kaisei-medium">
-                              {{ favorite.name }}
+                              {{ place.name }}
                             </p>
                             <p
                               class="
@@ -88,27 +91,27 @@
                                 my-2
                               "
                             >
-                              {{ favorite.catchcopy }}
+                              {{ place.catchcopy }}
                             </p>
                           </div>
                           <p class="text-navyblue kaisei-medium text-xs my-2">
-                            {{ favorite.access }}
+                            {{ place.access }}
                           </p>
                         </div>
                       </div>
                       <ul class="card-information my-3">
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          {{ favorite.address }}
+                          {{ place.address }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          予算:{{ favorite.average }}
+                          予算:{{ place.average }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          Open:{{ favorite.open }}
+                          Open:{{ place.open }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
                           <a
-                            :href="favorite.url"
+                            :href="place.url"
                             target="_blank"
                             class="text-sm text-lgtpink my-2"
                           >
@@ -131,12 +134,15 @@
       <div class="ranking pb-10">
         <p class="ranking-title p-5 text-center">Marks</p>
         <swiper :options="swiperOption">
-          <swiper-slide v-for="(bookmark, index) in bookmarks" :key="index">
+          <swiper-slide
+            v-for="(place, index) in bookmarkRanking"
+            :key="index"
+          >
             <div class="flex items-start justify-center flex-row flex-wrap p-5">
               <div class="ranking-fav">
                 <div class="ranking-no my-3">
                   <p class="parisienne text-center text-nvybrown text-5xl">
-                    No.{{ bookmark.no }}
+                    No.{{ place.no }}
                   </p>
                 </div>
                 <!-- shop layout -->
@@ -145,7 +151,7 @@
                   <div class="ranking-layout">
                     <div>
                       <img
-                        :src="bookmark.photo"
+                        :src="place.photo"
                         class="photo-position"
                         width="300"
                         height="300"
@@ -158,7 +164,7 @@
                         <div class="place-info m-2 text-center">
                           <div class="my-1">
                             <p class="text-navyblue text-center kaisei-medium">
-                              {{ bookmark.name }}
+                              {{ place.name }}
                             </p>
                             <p
                               class="
@@ -168,27 +174,27 @@
                                 my-2
                               "
                             >
-                              {{ bookmark.catchcopy }}
+                              {{ place.catchcopy }}
                             </p>
                           </div>
                           <p class="text-navyblue kaisei-medium text-xs my-2">
-                            {{ bookmark.access }}
+                            {{ place.access }}
                           </p>
                         </div>
                       </div>
                       <ul class="card-information my-3">
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          {{ bookmark.address }}
+                          {{ place.address }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          予算:{{ bookmark.average }}
+                          予算:{{ place.average }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
-                          Open:{{ bookmark.open }}
+                          Open:{{ place.open }}
                         </li>
                         <li class="text-navyblue kaisei-medium text-xs mx-8">
                           <a
-                            :href="bookmark.url"
+                            :href="place.url"
                             target="_blank"
                             class="text-sm text-lgtpink my-2"
                           >
@@ -216,8 +222,8 @@ import { getRankingTop } from "~/services/firebaseService";
 export default {
   data() {
     return {
-      bookmarks: [],
-      favorites: [],
+      bookmarkRanking: [],
+      favoriteRanking: [],
       swiperOption: {
         speed: 1000,
         spaceBetween: 30,
@@ -232,44 +238,48 @@ export default {
   },
   async created() {
     // Ranking上位のお店の情報を取得
-    const rankingFav = await getRankingTop("favorite").catch((err) => {
-      console.log("Can not get data of favorite ranking", err);
-    });
-    for (let i = 0; i < rankingFav.length; i += 1) {
-      const dataFav = rankingFav[i];
-      const placeData = {
-        id: dataFav.id,
-        name: dataFav.name,
-        address: dataFav.address,
-        access: dataFav.access,
-        average: dataFav.average,
-        catchcopy: dataFav.catchcopy,
-        open: dataFav.open,
-        photo: dataFav.photo,
-        url: dataFav.url,
-        no: i + 1,
-      };
-      this.favorites.push(placeData);
-    }
-    const rankingBm = await getRankingTop("mark").catch((err) => {
-      console.log("Can not get data of bookmark ranking", err);
-    });
-    for (let i = 0; i < rankingBm.length; i += 1) {
-      const dataBm = rankingBm[i];
-      const placeData = {
-        id: dataBm.id,
-        name: dataBm.name,
-        address: dataBm.address,
-        access: dataBm.access,
-        average: dataBm.average,
-        catchcopy: dataBm.catchcopy,
-        open: dataBm.open,
-        photo: dataBm.photo,
-        url: dataBm.url,
-        no: i + 1,
-      };
-      this.bookmarks.push(placeData);
-    }
+    await getRankingTop("favorite")
+      .then((result) => {
+        this.favoriteRanking = result.map((element, index) => {
+          const placeData = {
+            id: element.id,
+            name: element.name,
+            address: element.address,
+            access: element.access,
+            average: element.average,
+            catchcopy: element.catchcopy,
+            open: element.open,
+            photo: element.photo,
+            url: element.url,
+            no: index + 1,
+          };
+          return placeData;
+        });
+      })
+      .catch((err) => {
+        console.log("Can not get data of favorite ranking", err);
+      });
+    await getRankingTop("mark")
+      .then((result) => {
+        this.bookmarkRanking = result.map((element, index) => {
+          const placeData = {
+            id: element.id,
+            name: element.name,
+            address: element.address,
+            access: element.access,
+            average: element.average,
+            catchcopy: element.catchcopy,
+            open: element.open,
+            photo: element.photo,
+            url: element.url,
+            no: index + 1,
+          };
+          return placeData;
+        });
+      })
+      .catch((err) => {
+        console.log("Can not get data of bookmark ranking", err);
+      });
   },
 };
 </script>
