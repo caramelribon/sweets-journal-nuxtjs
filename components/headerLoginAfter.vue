@@ -18,11 +18,11 @@
               </router-link>
             </button>
             <!-- User Button (ユーザボタン) -->
-            <button class="btn btn--user relative" @click="openBalloon">
+            <button class="btn btn--user relative" @click="toggleBalloon">
               <i class="far fa-user fa-2x user-button-color"></i>
             </button>
             <span
-              v-if="userInfo"
+              v-if="isUserInfo"
               class="
                 userinfo
                 absolute
@@ -64,7 +64,7 @@
                     </div>
                     <!-- Logout (ログアウトボタン) -->
                     <div class="logout">
-                      <router-link to="/">
+                      <n-link to="/">
                         <button
                           class="
                             inline-block
@@ -84,7 +84,7 @@
                         >
                           Logout
                         </button>
-                      </router-link>
+                      </n-link>
                     </div>
                   </div>
                 </div>
@@ -118,21 +118,15 @@ import firebase from "~/plugins/firebase";
 export default {
   data() {
     return {
-      userInfo: false,
+      isUserInfo: false,
     };
   },
   methods: {
-    openBalloon() {
-      if (this.userInfo === false) {
-        this.userInfo = true;
-      } else {
-        this.userInfo = false;
-      }
+    toggleBalloon() {
+      this.isUserInfo = !this.isUserInfo;
     },
     closeBalloon() {
-      if (this.userInfo === true) {
-        this.userInfo = false;
-      }
+      this.isUserInfo = false;
     },
     signOut() {
       firebase
