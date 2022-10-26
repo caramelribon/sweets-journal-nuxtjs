@@ -6,11 +6,11 @@
       <div class="flex justify-end items-center px-3 py-3">
         <div class="user-button">
           <!-- User Button (ユーザボタン) -->
-          <button class="relative" @click="openBalloonNoLogin">
+          <button class="relative" @click="toggleBalloon">
             <i class="far fa-user fa-2x user-button-color"></i>
           </button>
-          <span
-            v-if="userInfoNoLogin"
+          <div
+            v-if="isUserInfo"
             class="
               absolute
               animate__animated animate__fadeIn animate__faster
@@ -27,7 +27,7 @@
                 <div class="flex justify-center items-center">
                   <!-- Login Button (ログインボタン) -->
                   <div class="login">
-                    <router-link to="/login">
+                    <n-link to="/login">
                       <button
                         class="
                           inline-block
@@ -43,11 +43,11 @@
                           hover:bg-white
                         "
                         type="button"
-                        @click="closeBalloonNoLogin"
+                        @click="toggleBalloon"
                       >
                         Login
                       </button>
-                    </router-link>
+                    </n-link>
                   </div>
                 </div>
               </div>
@@ -58,7 +58,7 @@
                 </p>
               </div>
             </div>
-          </span>
+          </div>
         </div>
       </div>
     </nav>
@@ -69,21 +69,12 @@
 export default {
   data() {
     return {
-      userInfoNoLogin: false,
+      isUserInfo: false,
     };
   },
   methods: {
-    openBalloonNoLogin() {
-      if (this.userInfoNoLogin === false) {
-        this.userInfoNoLogin = true;
-      } else {
-        this.userInfoNoLogin = false;
-      }
-    },
-    closeBalloonNoLogin() {
-      if (this.userInfoNoLogin === true) {
-        this.userInfoNoLogin = false;
-      }
+    toggleBalloon() {
+      this.isUserInfo = !this.isUserInfo;
     },
   },
 };

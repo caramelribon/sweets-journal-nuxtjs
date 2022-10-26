@@ -133,13 +133,13 @@ export default {
         .auth()
         .signOut()
         .then(() => {
-          console.log("ログアウトしました");
+          alert("ログアウトしました");
           this.$store.commit("signOut");
           this.$router.push("/");
         })
         .catch(error => {
           console.log(error);
-          console.log("ログアウトに失敗しました");
+          alert("ログアウトに失敗しました");
         });
     },
   },
