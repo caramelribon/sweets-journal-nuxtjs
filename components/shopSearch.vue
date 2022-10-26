@@ -247,7 +247,7 @@
         "
         v-show="resultState === 'GET_DATA'"
       >
-        現在地から{{ radiusShow }}にある{{ genreShow }}のお店一覧です
+        現在地から{{ radiusName }}にある{{ genreName }}のお店一覧です
       </p>
       <p
         class="
@@ -264,7 +264,7 @@
         "
         v-show="resultState === 'NO_DATA'"
       >
-        現在地から{{ radiusShow }}に{{ genreShow }}のお店はありませんでした
+        現在地から{{ radiusName }}に{{ genreName }}のお店はありませんでした
       </p>
       <div class="animate__animated">
         <div
@@ -355,18 +355,16 @@
 export default {
   data() {
     return {
-      allDataNum: 1,
-      bookmarks: [],
+      allDataNum: 0,
       countNum: 0,
       currentState: "IS_INITIALIZED",
-      favorites: [],
       genre: "",
-      genreShow: "",
+      genreName: "",
       lat: "",
       lng: "",
       places: [],
       radius: "",
-      radiusShow: "",
+      radiusName: "",
       resultState: "",
       startNum: 1,
     };
@@ -374,139 +372,96 @@ export default {
   methods: {
     // 現在地の緯度と経度の取得
     getCurrentLatLng() {
-      navigator.geolocation.getCurrentPosition(this.success, this.error);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          this.lat = position.coords.latitude;
+          this.lng = position.coords.longitude;
+          await this.checkRadius();
+          await this.checkGenre();
+          await this.firstSetting();
+          await this.searchPlace();
+        },
+        (error) => {
+          this.currentState = "IS_FAILED";
+          console.log(error.message);
+        }
+      );
     },
-    // 検索に成功したとき
-    success(position) {
-      this.lat = position.coords.latitude;
-      this.lng = position.coords.longitude;
-      this.radiusCheck();
-      this.genreCheck();
-      this.firstSetting();
-      this.searchPlace();
-    },
-    // 検索に失敗したとき
-    error(err) {
-      this.currentState = "IS_FAILED";
-      console.log(err.message);
-    },
-    radiusCheck() {
-      this.radiusShow = "";
+    checkRadius() {
+      this.radiusName = "";
       if (this.radius === "2") {
-        this.radiusShow = "半径500m以内";
+        this.radiusName = "半径500m以内";
       } else if (this.radius === "3") {
-        this.radiusShow = "半径1km以内";
+        this.radiusName = "半径1km以内";
       } else if (this.radius === "5") {
-        this.radiusShow = "半径3km以内";
+        this.radiusName = "半径3km以内";
       }
-      console.log(this.radiusShow);
+      console.log(this.radiusName);
     },
-    genreCheck() {
-      this.genreShow = "";
+    checkGenre() {
+      this.genreName = "";
       if (this.genre === "G001") {
-        this.genreShow = "居酒屋";
+        this.genreName = "居酒屋";
       } else if (this.genre === "G004") {
-        this.genreShow = "和食";
+        this.genreName = "和食";
       } else if (this.genre === "G005") {
-        this.genreShow = "洋食";
+        this.genreName = "洋食";
       } else if (this.genre === "G006") {
-        this.genreShow = "Italian&French";
+        this.genreName = "Italian&French";
       } else if (this.genre === "G007") {
-        this.genreShow = "中華";
+        this.genreName = "中華";
       } else if (this.genre === "G008") {
-        this.genreShow = "焼肉";
+        this.genreName = "焼肉";
       } else if (this.genre === "G017") {
-        this.genreShow = "韓国料理";
+        this.genreName = "韓国料理";
       } else if (this.genre === "G003") {
-        this.genreShow = "創作料理";
+        this.genreName = "創作料理";
       } else if (this.genre === "G002") {
-        this.genreShow = "Bar";
+        this.genreName = "Bar";
       } else if (this.genre === "G009") {
-        this.genreShow = "Asian&Ethnic";
+        this.genreName = "Asian&Ethnic";
       } else if (this.genre === "G010") {
-        this.genreShow = "各国料理";
+        this.genreName = "各国料理";
       } else if (this.genre === "G013") {
-        this.genreShow = "ラーメン";
+        this.genreName = "ラーメン";
       } else if (this.genre === "G016") {
-        this.genreShow = "お好み焼き系";
+        this.genreName = "お好み焼き系";
       } else if (this.genre === "G014") {
-        this.genreShow = "カフェ";
+        this.genreName = "カフェ";
       } else if (this.genre === "G015") {
-        this.genreShow = "その他";
+        this.genreName = "その他";
       } else if (this.genre === "") {
-        this.genreShow = "すべて";
+        this.genreName = "すべて";
       }
-      console.log(this.genreShow);
+      console.log(this.genreName);
     },
     firstSetting() {
       this.currentState = "IS_FETCHING";
       this.startNum = 1;
-      this.allDataNum = 1;
+      this.allDataNum = 0;
       this.countNum = 0;
       this.places = [];
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
-      await this.$axios.$get( `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`)
+      await this.$axios
+        .$get(
+          `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`
+        )
         .then((res) => {
           this.currentState = "IS_FOUND";
           const data = res.results.shop;
-          for (let i = 0; i < data.length; i += 1) {
-            const place = data[i];
-            let placeAccess = "";
-            let placeAddress = "";
-            let placeAverage = "";
-            let placeCatch = "";
-            let placeId = "";
-            let placeName = "";
-            let placeOpen = "";
-            let placePhoto = "";
-            let placeUrl = "";
-            if (place.access === null) {
-              placeAccess = "";
-            } else {
-              placeAccess = place.access;
-            }
-            if (place.address === null) {
-              placeAddress = "";
-            } else {
-              placeAddress = place.address;
-            }
-            if (place.budget.average === null) {
-              placeAverage = "";
-            } else {
-              placeAverage = place.budget.average;
-            }
-            if (place.genre.catch === null) {
-              placeCatch = "";
-            } else {
-              placeCatch = place.genre.catch;
-            }
-            if (place.id === null) {
-              placeId = "";
-            } else {
-              placeId = place.id;
-            }
-            if (place.name === null) {
-              placeName = "";
-            } else {
-              placeName = place.name;
-            }
-            if (place.open === null) {
-              placeOpen = "";
-            } else {
-              placeOpen = place.open;
-            }
-            if (place.photo.pc.l === null) {
-              placePhoto = "";
-            } else {
-              placePhoto = place.photo.pc.l;
-            }
-            if (place.urls.pc === null) {
-              placeUrl = "";
-            } else {
-              placeUrl = place.urls.pc;
-            }
+          // お店の情報をplacesに格納
+          this.places = data.map((element) => {
+            const placeAccess = element.access ?? "";
+            const placeAddress = element.address ?? "";
+            const placeAverage = element.budget.average ?? "";
+            const placeCatch = element.genre.catch ?? "";
+            const placeId = element.id ?? "";
+            const placeName = element.name ?? "";
+            const placeOpen = element.open ?? "";
+            const placePhoto = element.photo?.pc?.l ?? "";
+            const placeUrl = element.urls.pc ?? "";
             const placeData = {
               id: placeId,
               name: placeName,
@@ -518,11 +473,15 @@ export default {
               photo: placePhoto,
               url: placeUrl,
             };
-            this.places.push(placeData);
-          }
+            return placeData;
+          });
+          // 取得できる全てのデータ数
           this.allDataNum = res.results.results_available;
+          // この処理で取得したデータ数
           const getDataNum = Number(res.results.results_returned);
+          // いくつのデータを取得できたか
           this.countNum += getDataNum;
+          // 次回の何番目からデータを取得するか
           this.startNum = this.countNum + 1;
           console.log(this.allDataNum);
           console.log(this.countNum);
@@ -538,9 +497,10 @@ export default {
             this.resultState = "GET_DATA";
           }
           console.log(this.resultState);
-        }).catch(() => {
-          console.log('エラー');
         })
+        .catch(() => {
+          console.log("エラー");
+        });
     },
   },
 };
