@@ -149,6 +149,7 @@
 
 <script>
 import firebase from "~/plugins/firebase";
+import { onSignUp, onLogin } from "~/services/firebaseService";
 export default {
   computed: {
     user() {
@@ -176,56 +177,37 @@ export default {
   },
   methods: {
     async onLogin() {
-      this.loginErrorMessage = "";
       // Login
-      await firebase
-        .auth()
-        .signInWithEmailAndPassword(
-          this.loginForm.userMail,
-          this.loginForm.userPass
-        )
-        .then(() => {
-          // ログインに成功したときの処理
-          console.log("ログインしました");
-          this.$store.dispatch("checkLogin");
-          this.$router.push("/");
-        })
-        .catch((error) => {
-          // ログインに失敗したときの処理
-          this.loginErrorMessage = "ログインできませんでした";
-          console.error("ログインエラー", error);
-        });
+      const userData = await onLogin(
+        this.loginForm.userMail,
+        this.loginForm.userPass
+      );
+      console.log(userData);
+      if (userData) {
+        this.$store.dispatch("checkLogin", userData);
+        this.$router.push("/");
+      } else {
+       this.loginErrorMessage = "ログインできませんでした";
+      }
     },
     async onSignUp() {
       this.signupErrorMessage = "";
       const isSignupForm = this.checkSignupForm();
-      if (isSignupForm === true) {
+      if (isSignupForm) {
         console.log("All OK");
         // Signup
-        await firebase
-          .auth()
-          .createUserWithEmailAndPassword(
-            this.signupForm.userMail,
-            this.signupForm.userPass
-          )
-          .then(async (result) => {
-            // 登録に成功したときの処理
-            console.log("登録しました");
-            // ユーザ名の保存
-            await result.user
-              .updateProfile({
-                displayName: this.signupForm.userName,
-              })
-              .then(() => {
-                this.$store.commit("getData", result.user);
-                this.$router.push("/");
-              });
-          })
-          .catch((error) => {
-            // 登録に失敗したときの処理
-            this.signupErrorMessage = "登録できませんでした";
-            console.error("登録エラー", error);
-          });
+        const userData = await onSignUp(
+          this.signupForm.userMail,
+          this.signupForm.userPass,
+          this.signupForm.userName
+        );
+        console.log(userData);
+        if (userData) {
+          this.$store.dispatch("signUp", userData);
+          this.$router.push("/");
+        } else {
+          this.signupErrorMessage = "フォームに誤りがあります";
+        }
       } else {
         this.signupErrorMessage = "フォームに誤りがあります";
         console.log(this.signupErrorMessage);

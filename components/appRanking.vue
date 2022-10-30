@@ -20,7 +20,7 @@
           >
             お気に入りのお店ランキングと気になるお店ランキングの上位のお店です
           </p>
-          <div class="flex justify-center" v-show="!$store.state.user.login">
+          <div class="flex justify-center" v-show="!$store.state.user.isLogin">
             <div
               class="
                 flex

@@ -1,25 +1,20 @@
 import firebase from "~/plugins/firebase";
 import {
-  registerPlace,
-  registerUserPlace,
-  registerActivity,
-  deleteAction,
+  checkUserIsLogin,
+  deleteUserAction,
   getUserServePlaceData,
+  registerUserAction,
+  registerUserInformation,
 } from "~/services/firebaseService";
-
-const db = firebase.firestore();
-const userRef = db.collection("users");
-const placeRef = db.collection("places");
 
 export const state = () => ({
   user: {
-    uid: "",
-    email: "",
+    id: "",
     name: "",
-    login: false,
+    isLogin: false,
   },
-  userFav: [],
-  userBm: [],
+  userFavPlace: [],
+  userBmPlace: [],
 });
 
 export const getters = {
@@ -30,144 +25,100 @@ export const getters = {
 
 export const actions = {
   // login機能
-  checkLogin({ commit, dispatch }) {
-    firebase.auth().onAuthStateChanged(function (user) {
-      if (user) {
-        commit("getData", {
-          uid: user.uid,
-          email: user.email,
-          name: user.displayName,
-        });
-        commit("switchLogin");
-        dispatch("getUserServePlace", user.uid);
-      } else {
-        commit("deleteLogin");
-      }
-    });
+  async checkLogin({ commit, dispatch }, userData) {
+    if (userData) {
+      commit("getData", {
+        id: userData.id,
+        name: userData.name,
+      });
+      commit("switchLogin");
+      dispatch("getUserServePlace", userData.id);
+    } else {
+      commit("deleteLogin");
+    }
   },
   // signUp機能
   signUp({ commit }, userData) {
-    userRef.doc(userData.uid).set({
-      uid: userData.uid,
-      email: userData.email,
-      name: userData.displayName,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    registerUserInformation(userData);
     commit("getData", {
-      uid: userData.uid,
-      email: userData.email,
-      name: userData.displayName,
+      id: userData.id,
+      name: userData.name,
     });
+    commit("switchLogin");
   },
   // ログインしたユーザの保存しているお店の取得
   getUserServePlace({ commit }, userId) {
-    getUserServePlaceData(userId, 'favorite').then((result) => {
-      commit("registerUserFavPlace", result);
+    getUserServePlaceData(userId, "favorite").then((result) => {
+      commit("getUserFavPlace", result);
     });
-    getUserServePlaceData(userId, 'mark').then((result) => {
-      commit("registerUserBmPlace", result);
+    getUserServePlaceData(userId, "mark").then((result) => {
+      commit("getUserBmPlace", result);
     });
   },
   // お気に入り登録機能
   onFavorite({ commit, state }, place) {
-    // firebase関係
-    placeRef
-      .doc(place.id)
-      .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          // お店の情報がすでに登録されていたら、favorite_countを+1して更新
-          const favCount = doc.data().favorite_count + 1;
-          await placeRef.doc(place.id).update({
-            favorite_count: favCount,
-          });
-        } else {
-          // お店の情報が登録されていなかったら、登録
-          await registerPlace(place, 'favorite');
-        }
-        // ユーザIDとお店のIDをfavoritesに登録
-        await registerUserPlace(place.id, state.user.uid, 'favorite');
-        // Activityの登録
-        await registerActivity(place.id, state.user.uid, state.user.name, 'favorite');
-      });
+    // favorites・activities・placesへの登録
+    registerUserAction(place, state.user.id, state.user.name, "favorite");
     // stateのuserFavに登録
-    commit("registerFav", place);
+    commit("registerUserFavPlace", place);
   },
   // お気に入り解除機能
   delFavorite({ commit, state }, place) {
     // favoritesからユーザIDとお店のIDの削除とActivityの削除
-    deleteAction(place.id, state.user.uid, 'favorite');
+    deleteUserAction(place.id, state.user.id, "favorite");
     // stateのuserFavからplace_idを削除
-    commit("deleteFav", place);
+    commit("deleteUserFavPlace", place);
   },
   // 気になる登録機能
   onBookmark({ commit, state }, place) {
-    // firebase関係
-    placeRef
-      .doc(place.id)
-      .get()
-      .then(async (doc) => {
-        if (doc.exists) {
-          // お店の情報がすでに登録されていたら、bookmark_countを+1して更新
-          const bmCount = doc.data().bookmark_count + 1;
-          await placeRef.doc(place.id).update({
-            bookmark_count: bmCount,
-          });
-        } else {
-          // お店の情報が登録されていなかったら、登録
-          await registerPlace(place, 'mark');
-        }
-        // ユーザIDとお店のIDをbookmarksに登録
-        await registerUserPlace(place.id, state.user.uid, 'mark');
-        // Activityの登録
-        await registerActivity(place.id, state.user.uid, state.user.name, 'mark');
-      });
+    registerUserAction(place, state.user.id, state.user.name, "mark");
     // stateのuserFavに登録
-    commit("registerBm", place);
+    commit("registerUserBmPlace", place);
   },
   // 気になる削除機能
   delBookmark({ commit, state }, place) {
     // bookmarksからユーザIDとお店のIDの削除とActivityの削除
-    deleteAction(place.id, state.user.uid, 'mark');
+    deleteUserAction(place.id, state.user.id, "mark");
     // stateのuserFavからplace_idを削除
-    commit("deleteBm", place);
-  }
+    commit("deleteUserBmPlace", place);
+  },
 };
 
 export const mutations = {
-  getData: function (state, payload) {
-    console.log(payload.uid, payload.email, payload.name);
-    state.user.uid = payload.uid;
-    state.user.email = payload.email;
+  getData(state, payload) {
+    console.log(payload.id, payload.name);
+    state.user.id = payload.id;
     state.user.name = payload.name;
   },
-  switchLogin: function (state) {
-    state.user.login = true;
+  switchLogin(state) {
+    state.user.isLogin = true;
   },
-  deleteLogin: function (state) {
-    state.user.login = false;
+  deleteLogin(state) {
+    state.user.isLogin = false;
   },
-  signOut: function (state) {
-    state.user.uid = "";
-    state.user.email = "";
-    state.user.login = false;
+  signOut(state) {
+    state.user.id = "";
+    state.user.name = "";
+    state.user.isLogin = false;
   },
-  registerUserFavPlace: function (state, payload) {
-    state.userFav = payload;
+  // ログインして最初に取得
+  getUserFavPlace(state, payload) {
+    state.userFavPlace = payload;
   },
-  registerUserBmPlace: function (state, payload) {
-    state.userBm = payload;
+  getUserBmPlace(state, payload) {
+    state.userBmPlace = payload;
   },
-  registerFav: function (state, payload) {
-    state.userFav.push(payload.id);
+  // ログイン中に登録・削除
+  registerUserFavPlace(state, payload) {
+    state.userFavPlace.push(payload.id);
   },
-  registerBm: function (state, payload) {
-    state.userBm.push(payload.id);
+  registerUserBmPlace(state, payload) {
+    state.userBmPlace.push(payload.id);
   },
-  deleteFav: function (state, payload) {
-    state.userFav = state.userFav.filter((id) => id !== payload.id);
+  deleteUserFavPlace(state, payload) {
+    state.userFavPlace = state.userFavPlace.filter((id) => id !== payload.id);
   },
-  deleteBm: function (state, payload) {
-    state.userBm = state.userBm.filter((id) => id !== payload.id);
+  deleteUserBmPlace(state, payload) {
+    state.userBmPlace = state.userBmPlace.filter((id) => id !== payload.id);
   },
 };
