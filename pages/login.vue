@@ -8,7 +8,7 @@
         <div class="login is-active">
           <div class="w-full max-w-xm">
             <h1 class="m-2">LOGIN</h1>
-            <p class="error-login">{{ loginError }}</p>
+            <p class="error-login">{{ loginErrorMessage }}</p>
             <form class="w-full" @submit.prevent="onLogin">
               <div class="group mb-4">
                 <i class="fa fa-envelope" aria-hidden="true"></i>
@@ -21,14 +21,6 @@
                   name="mailLogin"
                 />
                 <label for="emailLogin"></label>
-                <span class="error-email flex px-1">
-                  <p class="error">
-                    {{ loginValidation.email }}
-                  </p>
-                  <p class="error px-1">
-                    {{ loginValidation.emailType }}
-                  </p>
-                </span>
               </div>
               <div class="group mb-6">
                 <i class="fa fa-unlock-alt" aria-hidden="true"></i>
@@ -41,22 +33,8 @@
                   name="pswLogin"
                 />
                 <label for="passwordLogin"></label>
-                <span class="error-password flex mx-1">
-                  <p class="error">
-                    {{ loginValidation.password }}
-                  </p>
-                  <p class="error px-1">
-                    {{ loginValidation.passwordType }}
-                  </p>
-                  <p class="error">
-                    {{ loginValidation.passwordLength }}
-                  </p>
-                </span>
               </div>
-              <input
-                type="submit"
-                value="LOGIN"
-              />
+              <input type="submit" value="LOGIN" />
             </form>
             <label class="button-open lora" for="switch-open">
               SIGN UP
@@ -72,7 +50,7 @@
           </label>
           <div class="inner">
             <h1 classs="beige">REGISTER</h1>
-            <p class="error-register">{{ signupError }}</p>
+            <p class="error-register">{{ signupErrorMessage }}</p>
             <form class="w-full" @submit.prevent="onSignUp">
               <!-- user name -->
               <div class="group">
@@ -82,15 +60,11 @@
                   id="name"
                   data-maxlength="10"
                   class="required maxlength name"
-                  v-model="signForm.userName"
+                  v-model="signupForm.userName"
                   placeholder="Name"
+                  required
                 />
                 <label for="name"></label>
-                <!-- error message (name) -->
-                <span class="error-name flex px-1">
-                  <p class="error">{{ signValidation.name }}</p>
-                  <p class="error px-1">{{ signValidation.nameLength }}</p>
-                </span>
               </div>
               <!-- email -->
               <div class="group">
@@ -100,17 +74,14 @@
                   id="email"
                   size="30"
                   class="required equal-email"
-                  v-model="signForm.userMail"
+                  v-model="signupForm.userMail"
                   placeholder="E-Mail"
+                  required
                 />
                 <label for="email"></label>
                 <!-- error message (email) -->
                 <span class="error-email flex px-1">
-                  <p class="error">
-                    {{ signValidation.email }}
-                  </p>
-                  <p class="error px-1">{{ signValidation.emailType }}</p>
-                  <p class="error">{{ signValidation.emailEqual }}</p>
+                  <p class="error">{{ emailErrorMessage }}</p>
                 </span>
               </div>
               <!-- email(checking) -->
@@ -121,21 +92,14 @@
                   id="emailCheck"
                   size="30"
                   class="required equal-email"
-                  v-model="signForm.userMailCheck"
+                  v-model="signupForm.userMailCheck"
                   placeholder="E-Mail (for checking)"
+                  required
                 />
                 <label for="emailCheck"></label>
                 <!-- error message (email) -->
                 <span class="error-email flex px-1">
-                  <p class="error">
-                    {{ signValidation.emailCheck }}
-                  </p>
-                  <p class="error px-1">
-                    {{ signValidation.emailTypeCheck }}
-                  </p>
-                  <p class="error">
-                    {{ signValidation.emailEqual }}
-                  </p>
+                  <p class="error">{{ emailErrorMessage }}</p>
                 </span>
               </div>
               <!-- password -->
@@ -146,23 +110,14 @@
                   id="password"
                   minlength="8"
                   class="required equal-password"
-                  v-model="signForm.userPass"
+                  v-model="signupForm.userPass"
                   placeholder="Password"
+                  required
                 />
                 <label for="password"></label>
-                <span class="error-email flex mx-1">
-                  <p class="error">
-                    {{ signValidation.password }}
-                  </p>
-                  <p class="error px-1">
-                    {{ signValidation.passwordType }}
-                  </p>
-                  <p class="error">
-                    {{ signValidation.passwordLength }}
-                  </p>
-                  <p class="error px-1">
-                    {{ signValidation.passwordEqual }}
-                  </p>
+                <!-- error message (password) -->
+                <span class="error-email flex px-1">
+                  <p class="error">{{ passErrorMessage }}</p>
                 </span>
               </div>
               <!-- password(checking) -->
@@ -173,23 +128,14 @@
                   id="passwordCheck"
                   minlength="8"
                   class="required equal-password"
-                  v-model="signForm.userPassCheck"
+                  v-model="signupForm.userPassCheck"
                   placeholder="Password (for checking)"
+                  required
                 />
                 <label for="passwordCheck"></label>
+                <!-- error message (password) -->
                 <span class="error-email flex px-1">
-                  <p class="error">
-                    {{ signValidation.passwordCheck }}
-                  </p>
-                  <p class="error px-1">
-                    {{ signValidation.passwordTypeCheck }}
-                  </p>
-                  <p class="error">
-                    {{ signValidation.passwordLengthCheck }}
-                  </p>
-                  <p class="error px-1">
-                    {{ signValidation.passwordEqual }}
-                  </p>
+                  <p class="error">{{ passErrorMessage }}</p>
                 </span>
               </div>
               <input type="submit" value="REGISTER" />
@@ -211,361 +157,112 @@ export default {
   },
   data() {
     return {
-      loginError: "",
+      loginErrorMessage: "",
       loginForm: {
-        userMail: null,
-        userPass: null,
+        userMail: "",
+        userPass: "",
       },
-      loginValidation: {
-        email: "",
-        emailType: "",
-        password: "",
-        passwordType: "",
-        passwordLength: "",
+      signupErrorMessage: "",
+      emailErrorMessage: "",
+      passErrorMessage: "",
+      signupForm: {
+        userMail: "",
+        userMailCheck: "",
+        userPass: "",
+        userPassCheck: "",
+        userName: "",
       },
-      signupError: "",
-      signForm: {
-        userMail: null,
-        userMailCheck: null,
-        userPass: null,
-        userPassCheck: null,
-        userName: null,
-      },
-      signValidation: {
-        name: "",
-        nameLength: "",
-        email: "",
-        emailEqual: "",
-        emailType: "",
-        emailCheck: "",
-        emailTypeCheck: "",
-        password: "",
-        passwordEqual: "",
-        passwordType: "",
-        passwordLength: "",
-        passwordCheck: "",
-        passwordTypeCheck: "",
-        passwordLengthCheck: "",
-      },
-      toUsername: null,
     };
   },
   methods: {
     async onLogin() {
-      this.loginError = "";
-      const result = await this.checkValidationLogin();
-      if (result === true) {
-        console.log("All OK");
-        // Login
-        firebase
-          .auth()
-          .signInWithEmailAndPassword(
-            this.loginForm.userMail,
-            this.loginForm.userPass
-          )
-          .then(() => {
-            // ログインに成功したときの処理
-            console.log("ログインしました");
-            this.$store.dispatch("checkLogin");
-            this.$router.push("/");
-          })
-          .catch((error) => {
-            // ログインに失敗したときの処理
-            this.loginError = "ログインできませんでした";
-            console.error("ログインエラー", error);
-          });
-      } else {
-        this.loginError = "フォームに誤りがあります";
-        console.log(this.loginError);
-      }
-    },
-    async checkValidationLogin() {
-      let valid = false;
-      const resultEmail = await this.checkEmailLogin();
-      const resultPass = await this.checkPassLogin();
-      if (resultEmail === true && resultPass === true) {
-        valid = true;
-        console.log("OK");
-      } else {
-        valid = false;
-        this.loginError = "フォームに誤りがあります";
-        console.log("NG");
-      }
-      return valid;
+      this.loginErrorMessage = "";
+      // Login
+      await firebase
+        .auth()
+        .signInWithEmailAndPassword(
+          this.loginForm.userMail,
+          this.loginForm.userPass
+        )
+        .then(() => {
+          // ログインに成功したときの処理
+          console.log("ログインしました");
+          this.$store.dispatch("checkLogin");
+          this.$router.push("/");
+        })
+        .catch((error) => {
+          // ログインに失敗したときの処理
+          this.loginErrorMessage = "ログインできませんでした";
+          console.error("ログインエラー", error);
+        });
     },
     async onSignUp() {
-      this.signupError = "";
-      const result = await this.checkValidationSign();
-      if (result === true) {
+      this.signupErrorMessage = "";
+      const isSignupForm = this.checkSignupForm();
+      if (isSignupForm === true) {
         console.log("All OK");
         // Signup
         await firebase
           .auth()
           .createUserWithEmailAndPassword(
-            this.signForm.userMail,
-            this.signForm.userPass
+            this.signupForm.userMail,
+            this.signupForm.userPass
           )
-          .then(async(result) => {
+          .then(async (result) => {
             // 登録に成功したときの処理
             console.log("登録しました");
             // ユーザ名の保存
-            await result.user.updateProfile({
-              displayName: this.signForm.userName,
-            }).then(() => {
-              this.$router.push("/");
-              this.$store.dispatch("signUp", result.user);
-            });
+            await result.user
+              .updateProfile({
+                displayName: this.signupForm.userName,
+              })
+              .then(() => {
+                this.$store.commit("getData", result.user);
+                this.$router.push("/");
+              });
           })
           .catch((error) => {
             // 登録に失敗したときの処理
-            this.signupError = "登録できませんでした";
+            this.signupErrorMessage = "登録できませんでした";
             console.error("登録エラー", error);
           });
       } else {
-        this.signupError = "フォームに誤りがあります";
-        console.log(this.signupError);
+        this.signupErrorMessage = "フォームに誤りがあります";
+        console.log(this.signupErrorMessage);
       }
     },
-    async checkValidationSign() {
-      let valid = false;
-      const resultUsername = await this.checkUsername();
-      const resultEmail = await this.checkEmailSign();
-      const resultEmailCheck = await this.checkEmailCheck();
-      const resultEmailEqual = await this.checkEmailEqual();
-      const resultPass = await this.checkPassSign();
-      const resultPassCheck = await this.checkPassCheck();
-      const resultPassEqual = await this.checkPassEqual();
-      if (
-        resultUsername === true &&
-        resultEmail === true &&
-        resultEmailCheck === true &&
-        resultEmailEqual === true &&
-        resultPass === true &&
-        resultPassCheck === true &&
-        resultPassEqual === true
-      ) {
-        valid = true;
+    checkSignupForm() {
+      if (this.checkMatchEmail && this.checkMatchPass) {
         console.log("OK");
+        return true;
       } else {
-        valid = false;
+        this.signupErrorMessage = "フォームに誤りがあります";
         console.log("NG");
+        return false;
       }
-      return valid;
     },
-    // Email validation Check
-    checkEmailLogin() {
-      let UserMail = false;
-      this.loginValidation.email = "";
-      this.loginValidation.emailType = "";
-      if (!this.loginForm.userMail) {
-        this.loginValidation.email = "未入力です";
-        console.log("email NG no data");
-      } else if (!this.checkEmailString(this.loginForm.userMail)) {
-        this.loginValidation.emailType = "正しい形式で入力してください";
-        console.log("email NG type");
-      } else {
-        UserMail = true;
-        console.log("email OK");
-      }
-      if (UserMail === true) {
-        this.loginValidation.email = "";
-        this.loginValidation.emailType = "";
-      }
-      return UserMail;
-    },
-    // Password validation Check
-    checkPassLogin() {
-      let UserPass = false;
-      this.loginValidation.password = "";
-      this.loginValidation.passwordType = "";
-      this.loginValidation.passwordLength = "";
-      if (!this.loginForm.userPass) {
-        this.loginValidation.password = "未入力です";
-        console.log("pass NG nodata");
-      } else if (!this.checkPassString(this.loginForm.userPass)) {
-        this.loginValidation.passwordType = "半角英数で入力してください";
-        console.log("pass NG type");
-      } else if (!this.checkMinCount(this.loginForm.userPass)) {
-        this.loginValidation.passwordLength = "8文字以上入力してください";
-        console.log("pass NG length");
-      } else {
-        UserPass = true;
-        console.log("pass OK");
-      }
-      if (UserPass === true) {
-        this.loginValidation.password = "";
-        this.loginValidation.passwordType = "";
-        this.loginValidation.passwordLength = "";
-      }
-      return UserPass;
-    },
-    // Username validation Check
-    checkUsername() {
-      let UserName = false;
-      this.signValidation.name = "";
-      this.signValidation.nameLength = "";
-      if (!this.signForm.userName) {
-        this.signValidation.name = "未入力です";
-        console.log("username NG no data");
-      } else if (!this.checkMaxCount(this.signForm.userName)) {
-        this.signValidation.nameLength = "10文字以内で入力してください";
-        console.log("username NG name length");
-      } else {
-        UserName = true;
-        console.log("username OK");
-      }
-      if (UserName === true) {
-        this.signValidation.name = "";
-        this.signValidation.nameLength = "";
-      }
-      return UserName;
-    },
-    // Email(check) validation Check
-    checkEmailSign() {
-      let UserMail = false;
-      this.signValidation.email = "";
-      this.signValidation.emailType = "";
-      if (!this.signForm.userMail) {
-        this.signValidation.email = "未入力です";
-        console.log("email NG no data");
-      } else if (!this.checkEmailString(this.signForm.userMail)) {
-        this.signValidation.emailType = "正しい形式で入力してください";
-        console.log("email NG type");
-      } else {
-        UserMail = true;
-        console.log("email OK");
-      }
-      if (UserMail === true) {
-        this.signValidation.email = "";
-        this.signValidation.emailType = "";
-      }
-      return UserMail;
-    },
-    // Email(check) validation Check
-    checkEmailCheck() {
-      let UserMailCheck = false;
-      this.signValidation.emailCheck = "";
-      this.signValidation.emailTypeCheck = "";
-      if (!this.signForm.userMailCheck) {
-        this.signValidation.emailCheck = "未入力です";
-        console.log("email check NG no data");
-      } else if (!this.checkEmailString(this.signForm.userMailCheck)) {
-        this.signValidation.emailTypeCheck = "正しい形式で入力してください";
-        console.log("email check NG type");
-      } else {
-        UserMailCheck = true;
-        console.log("email OK");
-      }
-      if (UserMailCheck === true) {
-        this.signValidation.emailCheck = "";
-        this.signValidation.emailTypeCheck = "";
-      }
-      return UserMailCheck;
-    },
-    // Email equal Check
-    checkEmailEqual() {
-      let UserMailChecking = false;
-      this.signValidation.emailEqual = "";
-      if (this.signForm.userMailCheck !== this.signForm.userMail) {
-        this.signValidation.emailEqual = "メールアドレスが一致しません";
+    checkMatchEmail() {
+      this.emailErrorMessage = "";
+      if (this.signupForm.userMailCheck !== this.signupForm.userMail) {
+        this.emailErrorMessage = "メールアドレスが一致しません";
         console.log("email equal NG");
+        return false;
       } else {
-        UserMailChecking = true;
         console.log("email equal OK");
+        return true;
       }
-      if (UserMailChecking === true) {
-        this.signValidation.emailEqual = "";
-      }
-      return UserMailChecking;
     },
-    // Password validation Check
-    checkPassSign() {
-      let UserPass = false;
-      this.signValidation.password = "";
-      this.signValidation.passwordType = "";
-      this.signValidation.passwordLength = "";
-      if (!this.signForm.userPass) {
-        this.signValidation.password = "未入力です";
-        console.log("pass NG nodata");
-      } else if (!this.checkPassString(this.signForm.userPass)) {
-        this.signValidation.passwordType = "半角英数で入力してください";
-        console.log("pass NG type");
-      } else if (!this.checkMinCount(this.signForm.userPass)) {
-        this.signValidation.passwordLength = "8文字以上入力してください";
-        console.log("pass NG length");
-      } else {
-        UserPass = true;
-        console.log("pass OK");
-      }
-      if (UserPass === true) {
-        this.signValidation.password = "";
-        this.signValidation.passwordType = "";
-        this.signValidation.passwordLength = "";
-      }
-      return UserPass;
-    },
-    // Password(check) validation Check
-    checkPassCheck() {
-      let UserPassCheck = false;
-      this.signValidation.passwordCheck = "";
-      this.signValidation.passwordTypeCheck = "";
-      this.signValidation.passwordLengthCheck = "";
-      if (!this.signForm.userPassCheck) {
-        this.signValidation.passwordCheck = "未入力です";
-        console.log("pass check NG no data");
-      } else if (!this.checkPassString(this.signForm.userPassCheck)) {
-        this.signValidation.passwordTypeCheck = "半角英数で入力してください";
-        console.log("pass check NG type");
-      } else if (!this.checkMinCount(this.signForm.userPassCheck)) {
-        this.signValidation.passwordLengthCheck = "8文字以上入力してください";
-        console.log("pass check NG length");
-      } else {
-        UserPassCheck = true;
-        console.log("pass check OK");
-      }
-      if (UserPassCheck === true) {
-        this.signValidation.passwordCheck = "";
-        this.signValidation.passwordTypeCheck = "";
-        this.signValidation.passwordLengthCheck = "";
-      }
-      return UserPassCheck;
-    },
-    checkPassEqual() {
-      let UserPassChecking = false;
-      this.signValidation.passwordEqual = "";
+    checkMatchPass() {
+      this.passErrorMessage = "";
       // Password Checking
-      if (this.signForm.userPassCheck !== this.signForm.userPass) {
-        this.signValidation.passwordEqual = "パスワードが一致しません";
+      if (this.signupForm.userPassCheck !== this.signupForm.userPass) {
+        this.passErrorMessage = "パスワードが一致しません";
         console.log("pass equal NG");
+        return false;
       } else {
-        UserPassChecking = true;
         console.log("pass equal OK");
+        return true;
       }
-      if (UserPassChecking === true) {
-        this.signValidation.passwordEqual = "";
-      }
-      return UserPassChecking;
-    },
-    // Email string Check
-    checkEmailString(inputdata) {
-      const re =
-        /^[A-Za-z0-9]{1}[A-Za-z0-9_.-]*@{1}[A-Za-z0-9_.-]+.[A-Za-z0-9]+$/;
-      return re.test(inputdata);
-    },
-    // Password string Check
-    checkPassString(inputdata) {
-      const re = /^[A-Za-z0-9]*$/;
-      return re.test(inputdata);
-    },
-    // Minimum number of characters Check
-    checkMinCount(inputdata) {
-      const re = /(?=^.{8,}$)/i;
-      return re.test(inputdata);
-    },
-    // Max number of characters Check
-    checkMaxCount(inputdata) {
-      const re = /(?=^.{0,10}$)/i;
-      return re.test(inputdata);
     },
   },
 };
