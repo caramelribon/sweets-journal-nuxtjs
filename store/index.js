@@ -1,6 +1,4 @@
-import firebase from "~/plugins/firebase";
 import {
-  checkUserIsLogin,
   deleteUserAction,
   getUserServePlaceData,
   registerUserAction,

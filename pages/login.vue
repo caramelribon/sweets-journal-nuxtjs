@@ -148,7 +148,6 @@
 </template>
 
 <script>
-import firebase from "~/plugins/firebase";
 import { onSignUp, onLogin } from "~/services/firebaseService";
 export default {
   computed: {
