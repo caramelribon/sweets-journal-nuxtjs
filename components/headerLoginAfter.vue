@@ -10,12 +10,12 @@
           <div class="actions-menu">
             <!-- Home Button (ホームボタン) -->
             <button class="btn btn--home bg-none">
-              <router-link
+              <n-link
                 to="/"
                 class="block lora-bold text-lightgray text-lg"
               >
                 Top
-              </router-link>
+              </n-link>
             </button>
             <!-- User Button (ユーザボタン) -->
             <button class="btn btn--user relative" @click="toggleBalloon">
