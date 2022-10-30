@@ -9,87 +9,54 @@ const activeCountRef = db.collection("activityCount");
 
 export const getUserServePlaceData = async (userId, action) => {
   const placeIdData = [];
-  if (action === 'favorite') {
-    await favRef
-      .where('user_id', '==', userId)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach((doc) => {
-          if (!doc.data()) {
-            return;
-          }
-          placeIdData.push(doc.data().place_id);
-        });
+  const assignRef = action === "favorite" ? favRef : bmRef;
+  await assignRef
+    .where("user_id", "==", userId)
+    .get()
+    .then((snapShot) => {
+      snapShot.forEach((doc) => {
+        placeIdData.push(doc.data().place_id);
       });
-  } else {
-    await bmRef
-      .where("user_id", "==", userId)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach((doc) => {
-          if (!doc.data()) {
-            return;
-          }
-          placeIdData.push(doc.data().place_id);
-        });
-      });
-  }
+    });
   return placeIdData;
-}
+};
 
 export const registerPlace = async (place, action) => {
-  if (action === 'favorite') {
-    await placeRef.doc(place.id).set({
-      id: place.id,
-      name: place.name,
-      address: place.address,
-      access: place.access,
-      average: place.average,
-      catchcopy: place.catchcopy,
-      open: place.open,
-      photo: place.photo,
-      url: place.url,
-      favorite_count: 1,
-      bookmark_count: 0,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-  } else {
-    await placeRef.doc(place.id).set({
-      id: place.id,
-      name: place.name,
-      address: place.address,
-      access: place.access,
-      average: place.average,
-      catchcopy: place.catchcopy,
-      open: place.open,
-      photo: place.photo,
-      url: place.url,
-      favorite_count: 0,
-      bookmark_count: 1,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-  }
+  await placeRef.doc(place.id).set({
+    id: place.id,
+    name: place.name,
+    address: place.address,
+    access: place.access,
+    average: place.average,
+    catchcopy: place.catchcopy,
+    open: place.open,
+    photo: place.photo,
+    url: place.url,
+    favorite_count: action === "favorite" ? 1 : 0,
+    bookmark_count: action === "favorite" ? 0 : 1,
+    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+  });
 };
 
 export const registerUserPlace = async (placeId, userId, action) => {
-  if (action === 'favorite') {
-    favRef.doc().set({
-      user_id: userId,
-      place_id: placeId,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-    });    
-  } else {
-    bmRef.doc().set({
-      user_id: userId,
-      place_id: placeId,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
-    });
-  }
+  const assignRef = action === "favorite" ? favRef : bmRef;
+  await assignRef.doc().set({
+    user_id: userId,
+    place_id: placeId,
+    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+  });
 };
 
-export const registerActivity = async (placeId, userId, userName, actionName) => {
+export const registerActivity = async (
+  placeId,
+  userId,
+  userName,
+  actionName
+) => {
+  const batch = db.batch();
   // activitiesに登録
-  await activeRef.doc().set({
+  const activeDataRef = await activeRef.doc();
+  batch.set(activeDataRef, {
     user_id: userId,
     username: userName,
     place_id: placeId,
@@ -97,137 +64,72 @@ export const registerActivity = async (placeId, userId, userName, actionName) =>
     created_at: firebase.firestore.FieldValue.serverTimestamp(),
   });
   // activityCountを+1して更新
-  await activeCountRef
-    .doc("count")
-    .get()
-    .then((doc) => {
-      const actCount = doc.data().activityCount + 1;
-      activeCountRef.doc("count").update({
-        activityCount: actCount,
-      });
-    });
+  const activeCountDataRef = await activeCountRef.doc('count');
+  batch.update(activeCountDataRef, {
+    activityCount: firebase.firestore.FieldValue.increment(1),
+  });
+  await batch.commit();
 };
 
 export const delActivity = async (placeId, userId, actionName) => {
+  const batch = db.batch();
   // activityを削除
-  await activeRef
+  const querySnapshot = await activeRef
     .where("user_id", "==", userId)
     .where("place_id", "==", placeId)
     .where("action", "==", actionName)
-    .get()
-    .then((snapShot) => {
-      snapShot.forEach(async (doc) => {
-        if (doc.exists) {
-          await doc.ref.delete();
-          console.log("Cancel activity of favorite!");
-        } else {
-          console.log("Not data!");
-        }
-      });
-    });
+    .get();
+  querySnapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+    console.log("Cancel activity of favorite!");
+  });
   // activityCountを-1して更新
-  await activeCountRef
-    .doc("count")
-    .get()
-    .then((doc) => {
-      const actCount = doc.data().activityCount - 1;
-      activeCountRef.doc("count").update({
-        activityCount: actCount,
-      });
-    });
+  const activeCountDataRef = await activeCountRef.doc('count');
+  batch.update(activeCountDataRef, {
+    activityCount: firebase.firestore.FieldValue.increment(-1),
+  });
+  await batch.commit();
 };
 
 export const deleteAction = async (placeId, userId, action) => {
-  if (action === 'favorite') {
-    await favRef
-      .where("user_id", "==", userId)
-      .where("place_id", "==", placeId)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach(async (doc) => {
-          if (doc.exists) {
-            // favorites内のdocument削除
-            await doc.ref.delete();
-            // placeのfavorite_countを-1する
-            placeRef
-              .doc(placeId)
-              .get()
-              .then((placeDoc) => {
-                if (placeDoc.exists) {
-                  const favCount = placeDoc.data().favorite_count - 1;
-                  placeRef.doc(placeId).update({
-                    favorite_count: favCount,
-                  });
-                }
-              })
-              .catch((error) => {
-                console.log("Can not delete favorite place!", error);
-              });
-          }
-        });
-      });    
+  const batch = db.batch();
+  const assignRef = action === "favorite" ? favRef : bmRef;
+  // favorites or bookmarks内のdocument削除
+  const querySnapshot = await assignRef
+    .where("user_id", "==", userId)
+    .where("place_id", "==", placeId)
+    .get();
+  querySnapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  // placeのfavorite_countを-1する
+  const placeDataRef = await placeRef.doc(placeId);
+  if (action === "favorite_count") {
+    batch.update(placeDataRef, {
+      favorite_count: firebase.firestore.FieldValue.increment(-1),
+    });
   } else {
-    await bmRef
-      .where("user_id", "==", userId)
-      .where("place_id", "==", placeId)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach(async (doc) => {
-          if (doc.exists) {
-            // bookmarks内のdocument削除
-            await doc.ref.delete();
-            // placeのbookmark_countを-1する
-            placeRef
-              .doc(placeId)
-              .get()
-              .then((placeDoc) => {
-                if (placeDoc.exists) {
-                  const bmCount = placeDoc.data().bookmark_count - 1;
-                  placeRef.doc(placeId).update({
-                    bookmark_count: bmCount,
-                  });
-                }
-              })
-              .catch((error) => {
-                console.log("Can not delete bookmarked place!", error);
-              });
-          }
-        });
-      });
+    batch.update(placeDataRef, {
+      bookmark_count: firebase.firestore.FieldValue.increment(-1),
+    });
   }
-  await delActivity(placeId, userId, action);
+  await batch.commit().then(() => {
+    delActivity(placeId, userId, action);
+  });
 };
 
 export const getRankingTop = async (action) => {
   const rankingData = [];
-  if (action === 'favorite') {
-    await placeRef
-      .orderBy('favorite_count', 'desc')
-      .orderBy('created_at', 'desc')
-      .limit(7)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach((doc) => {
-          if (!doc.data()) {
-            return;
-          }
-          rankingData.push((doc.data()));
-        });
+  const assignName = action === "favorite" ? "favorite_count" : "bookmark_count";
+  await placeRef
+    .orderBy(assignName, "desc")
+    .orderBy("created_at", "desc")
+    .limit(7)
+    .get()
+    .then((snapShot) => {
+      snapShot.forEach((doc) => {
+        rankingData.push(doc.data());
       });
-  } else {
-    await placeRef
-      .orderBy("bookmark_count", "desc")
-      .orderBy("created_at", "desc")
-      .limit(7)
-      .get()
-      .then((snapShot) => {
-        snapShot.forEach((doc) => {
-          if (!doc.data()) {
-            return;
-          }
-          rankingData.push(doc.data());
-        });
-      });
-  }
+    });
   return rankingData;
-}
+};
