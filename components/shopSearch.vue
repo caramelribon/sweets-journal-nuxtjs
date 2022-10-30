@@ -252,7 +252,6 @@
       <p
         class="
           animate__animated
-          invisible
           text-beige text-center
           my-5
           kaisei-medium
@@ -376,8 +375,8 @@ export default {
         async (position) => {
           this.lat = position.coords.latitude;
           this.lng = position.coords.longitude;
-          await this.checkRadius();
-          await this.checkGenre();
+          this.radiusName = await this.checkRadius();
+          this.genreName = await this.checkGenre();
           await this.firstSetting();
           await this.searchPlace();
         },
@@ -388,62 +387,73 @@ export default {
       );
     },
     checkRadius() {
-      this.radiusName = "";
-      if (this.radius === "2") {
-        this.radiusName = "半径500m以内";
-      } else if (this.radius === "3") {
-        this.radiusName = "半径1km以内";
-      } else if (this.radius === "5") {
-        this.radiusName = "半径3km以内";
-      }
-      console.log(this.radiusName);
+      return this.radius === "2"
+        ? "半径500m以内"
+        : this.radius === "3"
+        ? "半径1km以内"
+        : this.radius === "5"
+        ? "半径3km以内"
+        : "";
     },
     checkGenre() {
-      this.genreName = "";
-      if (this.genre === "G001") {
-        this.genreName = "居酒屋";
-      } else if (this.genre === "G004") {
-        this.genreName = "和食";
-      } else if (this.genre === "G005") {
-        this.genreName = "洋食";
-      } else if (this.genre === "G006") {
-        this.genreName = "Italian&French";
-      } else if (this.genre === "G007") {
-        this.genreName = "中華";
-      } else if (this.genre === "G008") {
-        this.genreName = "焼肉";
-      } else if (this.genre === "G017") {
-        this.genreName = "韓国料理";
-      } else if (this.genre === "G003") {
-        this.genreName = "創作料理";
-      } else if (this.genre === "G002") {
-        this.genreName = "Bar";
-      } else if (this.genre === "G009") {
-        this.genreName = "Asian&Ethnic";
-      } else if (this.genre === "G010") {
-        this.genreName = "各国料理";
-      } else if (this.genre === "G013") {
-        this.genreName = "ラーメン";
-      } else if (this.genre === "G016") {
-        this.genreName = "お好み焼き系";
-      } else if (this.genre === "G014") {
-        this.genreName = "カフェ";
-      } else if (this.genre === "G015") {
-        this.genreName = "その他";
-      } else if (this.genre === "") {
-        this.genreName = "すべて";
-      }
-      console.log(this.genreName);
+      return this.genre === "G001"
+        ? "居酒屋"
+        : this.genre === "G004"
+        ? "和食"
+        : this.genre === "G005"
+        ? "洋食"
+        : this.genre === "G006"
+        ? "Italian&French"
+        : this.genre === "G007"
+        ? "中華"
+        : this.genre === "G008"
+        ? "焼肉"
+        : this.genre === "G017"
+        ? "韓国料理"
+        : this.genre === "G003"
+        ? "創作料理"
+        : this.genre === "G002"
+        ? "Bar"
+        : this.genre === "G009"
+        ? "Asian&Ethnic"
+        : this.genre === "G010"
+        ? "各国料理"
+        : this.genre === "G013"
+        ? "ラーメン"
+        : this.genre === "G016"
+        ? "お好み焼き系"
+        : this.genre === "G014"
+        ? "カフェ"
+        : this.genre === "G015"
+        ? "その他"
+        : "すべて";
     },
     firstSetting() {
       this.currentState = "IS_FETCHING";
       this.startNum = 1;
-      this.allDataNum = 0;
+      this.allDataNum = null;
       this.countNum = 0;
       this.places = [];
+      console.log(this.genreName);
+      console.log(this.radiusName);
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
+      this.resultState = "GET_DATA";
+      // お店のデータ取得
+      while(this.allDataNum !== this.countNum){      
+        await this.getPlaceData();
+        this.countNum += this.getDataNum;
+        this.startNum = this.countNum + 1;
+        console.log(this.allDataNum);
+        console.log(this.countNum);
+        if (this.allDataNum === 0) {
+        this.resultState = "NO_DATA";
+        }
+        console.log(this.resultState);
+      }
+    },
+    async getPlaceData() {
       await this.$axios
         .$get(
           `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`
@@ -455,13 +465,13 @@ export default {
           this.places = data.map((element) => {
             const placeAccess = element.access ?? "";
             const placeAddress = element.address ?? "";
-            const placeAverage = element.budget.average ?? "";
-            const placeCatch = element.genre.catch ?? "";
+            const placeAverage = element.budget?.average ?? "";
+            const placeCatch = element.genre?.catch ?? "";
             const placeId = element.id ?? "";
             const placeName = element.name ?? "";
             const placeOpen = element.open ?? "";
             const placePhoto = element.photo?.pc?.l ?? "";
-            const placeUrl = element.urls.pc ?? "";
+            const placeUrl = element.urls?.pc ?? "";
             const placeData = {
               id: placeId,
               name: placeName,
@@ -478,25 +488,7 @@ export default {
           // 取得できる全てのデータ数
           this.allDataNum = res.results.results_available;
           // この処理で取得したデータ数
-          const getDataNum = Number(res.results.results_returned);
-          // いくつのデータを取得できたか
-          this.countNum += getDataNum;
-          // 次回の何番目からデータを取得するか
-          this.startNum = this.countNum + 1;
-          console.log(this.allDataNum);
-          console.log(this.countNum);
-          console.log(this.startNum);
-          if (this.allDataNum === this.countNum) {
-            console.log("allDataGet!");
-          } else {
-            this.searchPlace();
-          }
-          if (this.allDataNum === 0) {
-            this.resultState = "NO_DATA";
-          } else {
-            this.resultState = "GET_DATA";
-          }
-          console.log(this.resultState);
+          this.getDataNum = Number(res.results.results_returned);
         })
         .catch(() => {
           console.log("エラー");
