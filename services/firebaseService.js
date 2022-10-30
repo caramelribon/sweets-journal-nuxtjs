@@ -210,3 +210,22 @@ export const registerUserAction = async (place, userId, userName, action) => {
       await registerActivity(place.id, userId, userName, action);
     });
 };
+
+export const userRegisteredPlaces = async (action, userId) => {
+  const placeData = [];
+  const assignRef = action === "favorite" ? favRef : bmRef;
+  await assignRef
+    .where("user_id", "==", userId)
+    .orderBy("created_at", "desc")
+    .get()
+    .then((snapShot) => {
+      snapShot.forEach((doc) => {
+        const placeId = doc.data().place_id;
+        placeRef.doc(placeId).get().then((place) => {
+          if (!place) return;
+          placeData.push(place.data());
+        })
+      });
+    });
+  return placeData;
+};
