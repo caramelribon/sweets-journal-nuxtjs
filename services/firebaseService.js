@@ -1,3 +1,4 @@
+import { reject, resolve } from "core-js/fn/promise";
 import firebase from "~/plugins/firebase";
 
 const db = firebase.firestore();
@@ -221,11 +222,94 @@ export const userRegisteredPlaces = async (action, userId) => {
     .then((snapShot) => {
       snapShot.forEach((doc) => {
         const placeId = doc.data().place_id;
-        placeRef.doc(placeId).get().then((place) => {
-          if (!place) return;
-          placeData.push(place.data());
-        })
+        placeRef
+          .doc(placeId)
+          .get()
+          .then((place) => {
+            if (!place) return;
+            placeData.push(place.data());
+          });
       });
     });
   return placeData;
+};
+
+export const getActivityNumber = async () => {
+  const activityNumber = activeCountRef
+    .doc("count")
+    .get()
+    .then((doc) => {
+      return doc.data().activityCount;
+    });
+  return activityNumber;
+};
+
+const getDetailData = async (doc) => {
+  const activityData = [];
+  const placeId = doc.data().place_id;
+  const createdTime = doc.data().created_at.toDate();
+  const createdDate = `${createdTime.getFullYear()}/${
+    createdTime.getMonth() + 1
+  }/${createdTime.getDate()} ${createdTime.getHours()}:${createdTime.getMinutes()}:${createtime.getSeconds()}`;
+  await firebase
+    .firestore()
+    .collection("places")
+    .doc(placeId)
+    .get()
+    .then((docRef) => {
+      if (docRef !== null) {
+        activityData = docRef.data();
+        activityData = [
+          ...activityData,
+          {
+            action: doc.data().action,
+            created_at: createdDate,
+            userName: doc.data().username,
+          },
+        ];
+      }
+    });
+
+  return activityData;
+};
+
+
+export const getActivityData = async (getDataNum, pagingToken) => {
+  return new Promise((resolve, reject) => {
+    let query = activeRef.orderBy("create_at", "desc").limit(getDataNum);
+    // pagingTokenがあったら、取得する最初のデータを指定
+    if (pagingToken !== null) {
+      const [seconds, nanoseconds] = pagingToken.split(":");
+      const timestamp = new firebase.firestore.Timestamp(seconds, nanoseconds);
+      query = query.startAfter(timestamp);
+    }
+
+    query
+      .get()
+      .then(async (snapShot) => {
+        // limitよりも多い件数データがあるならnextTokenを作成しておく
+        let nextToken = null;
+        if (snapShot.docs.length >= getDataNum) {
+          const last = snapShot.docs[snapShot.docs.length - 1];
+          const lastData = last.data();
+          const time = lastData.created_at;
+          nextToken = `${time.seconds}:${time.nanoseconds}`;
+        }
+        const infoPromises = [];
+        for (let i = 0; i < snapShot.docs.length; i += 1) {
+          const doc = snapShot.docs[i];
+          infoPromises.push(getDetailData(doc));
+          console.log(infoPromises);
+        }
+        // 全ての詳細データが取得するまで待つ
+        const infos = await Promise.all(infoPromises);
+
+        console.log(infos, nextToken);
+        resolve({ buffData: infos, nextPageToken: nextToken });
+      })
+      .catch((err) => {
+        console.log("エラーが発見されました：データ取得時", err);
+        reject(new Error("firebaseからのデータ取得エラー"));
+      });
+  });
 };
