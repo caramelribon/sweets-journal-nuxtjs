@@ -16,7 +16,7 @@ export const state = () => ({
 });
 
 export const getters = {
-  user: (state) => {
+  user(state) {
     return state.user;
   },
 };
@@ -36,8 +36,8 @@ export const actions = {
     }
   },
   // signUp機能
-  signUp({ commit }, userData) {
-    registerUserInformation(userData);
+  async signUp({ commit }, userData) {
+    await registerUserInformation(userData);
     commit("getData", {
       id: userData.id,
       name: userData.name,
@@ -45,38 +45,38 @@ export const actions = {
     commit("switchLogin");
   },
   // ログインしたユーザの保存しているお店の取得
-  getUserServePlace({ commit }, userId) {
-    getUserServePlaceData(userId, "favorite").then((result) => {
+  async getUserServePlace({ commit }, userId) {
+    await getUserServePlaceData(userId, "favorite").then((result) => {
       commit("getUserFavPlace", result);
     });
-    getUserServePlaceData(userId, "mark").then((result) => {
+    await getUserServePlaceData(userId, "mark").then((result) => {
       commit("getUserBmPlace", result);
     });
   },
   // お気に入り登録機能
-  onFavorite({ commit, state }, place) {
+  async onFavorite({ commit, state }, place) {
     // favorites・activities・placesへの登録
-    registerUserAction(place, state.user.id, state.user.name, "favorite");
+    await registerUserAction(place, state.user.id, state.user.name, "favorite");
     // stateのuserFavに登録
     commit("registerUserFavPlace", place);
   },
   // お気に入り解除機能
-  delFavorite({ commit, state }, place) {
+  async delFavorite({ commit, state }, place) {
     // favoritesからユーザIDとお店のIDの削除とActivityの削除
-    deleteUserAction(place.id, state.user.id, "favorite");
+    await deleteUserAction(place.id, state.user.id, "favorite");
     // stateのuserFavからplace_idを削除
     commit("deleteUserFavPlace", place);
   },
   // 気になる登録機能
-  onBookmark({ commit, state }, place) {
-    registerUserAction(place, state.user.id, state.user.name, "mark");
+  async onBookmark({ commit, state }, place) {
+    await registerUserAction(place, state.user.id, state.user.name, "mark");
     // stateのuserFavに登録
     commit("registerUserBmPlace", place);
   },
   // 気になる削除機能
-  delBookmark({ commit, state }, place) {
+  async delBookmark({ commit, state }, place) {
     // bookmarksからユーザIDとお店のIDの削除とActivityの削除
-    deleteUserAction(place.id, state.user.id, "mark");
+    await deleteUserAction(place.id, state.user.id, "mark");
     // stateのuserFavからplace_idを削除
     commit("deleteUserBmPlace", place);
   },
