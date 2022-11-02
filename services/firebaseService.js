@@ -222,7 +222,7 @@ export const userRegisteredPlaces = async (action, userId) => {
       snapShot.forEach((doc) => {
         const placeId = doc.data().place_id;
         placeRef.doc(placeId).get().then((place) => {
-          if (!place) return;
+          if (!place.exists) return;
           placeData.push(place.data());
         })
       });
