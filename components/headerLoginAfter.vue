@@ -10,10 +10,7 @@
           <div class="actions-menu">
             <!-- Home Button (ホームボタン) -->
             <button class="btn btn--home bg-none">
-              <n-link
-                to="/"
-                class="block lora-bold text-lightgray text-lg"
-              >
+              <n-link to="/" class="block lora-bold text-lightgray text-lg">
                 Top
               </n-link>
             </button>
@@ -36,7 +33,7 @@
                 <div class="mt-2 mx-3 border-b text-center">
                   <i class="user-icon fas fa-user-circle fa-4x"></i>
                   <p class="text-center py-1 text-2xl user-name-login">
-                    {{ $store.state.user.name }}
+                    {{ user.name }}
                   </p>
                 </div>
                 <!-- Button Area (ボタンエリア) -->
@@ -100,9 +97,7 @@
             </div>
             <!-- Activity Button (アクティビティボタン) -->
             <button class="btn btn--activity">
-              <button
-                class="block lora-bold text-lightgray text-lg"
-              >
+              <button class="block lora-bold text-lightgray text-lg">
                 Activity
               </button>
             </button>
@@ -115,8 +110,14 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import firebase from "~/plugins/firebase";
 export default {
+  computed: {
+    ...mapGetters({
+      user: "user",
+    }),
+  },
   data() {
     return {
       isUserInfo: false,
@@ -138,7 +139,7 @@ export default {
           this.$store.commit("signOut");
           this.$router.push("/");
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
           alert("ログアウトに失敗しました");
         });

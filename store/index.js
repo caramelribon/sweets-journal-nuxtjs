@@ -19,6 +19,12 @@ export const getters = {
   user(state) {
     return state.user;
   },
+  userFavPlace(state) {
+    return state.userFavPlace;
+  },
+  userBmPlace(state) {
+    return state.userBmPlace;
+  },
 };
 
 export const actions = {

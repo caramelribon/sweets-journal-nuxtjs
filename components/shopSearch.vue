@@ -310,14 +310,14 @@
                   <div class="flex justify-center items-center">
                     <button
                       @click="$store.dispatch('onFavorite', place)"
-                      :disabled="!$store.state.user.isLogin"
-                      v-if="$store.state.userFavPlace.indexOf(place.id) === -1"
+                      :disabled="!user.isLogin"
+                      v-if="userFavPlace.indexOf(place.id) === -1"
                     >
                       <i class="far fa-heart fa-lg"></i>
                     </button>
                     <button
                       @click="$store.dispatch('delFavorite', place)"
-                      :disabled="!$store.state.user.isLogin"
+                      :disabled="!user.isLogin"
                       v-else
                     >
                       <i class="fas fa-heart fa-lg liked"></i>
@@ -327,14 +327,14 @@
                   <div class="flex justify-center items-center">
                     <button
                       @click="$store.dispatch('onBookmark', place)"
-                      :disabled="!$store.state.user.isLogin"
-                      v-if="$store.state.userBmPlace.indexOf(place.id) === -1"
+                      :disabled="!user.isLogin"
+                      v-if="userBmPlace.indexOf(place.id) === -1"
                     >
                       <i class="far fa-bookmark fa-lg"></i>
                     </button>
                     <button
                       @click="$store.dispatch('delBookmark', place)"
-                      :disabled="!$store.state.user.isLogin"
+                      :disabled="!user.isLogin"
                       v-else
                     >
                       <i class="fas fa-bookmark fa-lg bookmarked"></i>
@@ -351,7 +351,15 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
+  computed: {
+    ...mapGetters([
+      "user",
+      "userFavPlace",
+      "userBmPlace",
+    ]),
+  },
   data() {
     return {
       allDataNum: 0,

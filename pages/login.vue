@@ -150,11 +150,6 @@
 <script>
 import { onSignUp, onLogin } from "~/services/firebaseService";
 export default {
-  computed: {
-    user() {
-      return this.store.getters["user"];
-    },
-  },
   data() {
     return {
       loginErrorMessage: "",
@@ -186,7 +181,7 @@ export default {
         this.$store.dispatch("checkLogin", userData);
         this.$router.push("/");
       } else {
-       this.loginErrorMessage = "ログインできませんでした";
+        this.loginErrorMessage = "ログインできませんでした";
       }
     },
     async onSignUp() {
