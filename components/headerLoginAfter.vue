@@ -140,7 +140,6 @@ export default {
           this.$router.push("/");
         })
         .catch((error) => {
-          console.log(error);
           alert("ログアウトに失敗しました");
         });
     },

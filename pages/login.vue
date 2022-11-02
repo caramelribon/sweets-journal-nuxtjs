@@ -176,7 +176,6 @@ export default {
         this.loginForm.userMail,
         this.loginForm.userPass
       );
-      console.log(userData);
       if (userData) {
         this.$store.dispatch("checkLogin", userData);
         this.$router.push("/");
@@ -188,7 +187,6 @@ export default {
       this.signupErrorMessage = "";
       const isSignupForm = this.checkSignupForm();
       if (isSignupForm) {
-        console.log("All OK");
         // Signup
         const userData = await onSignUp(
           this.signupForm.userMail,
@@ -204,16 +202,13 @@ export default {
         }
       } else {
         this.signupErrorMessage = "フォームに誤りがあります";
-        console.log(this.signupErrorMessage);
       }
     },
     checkSignupForm() {
       if (this.checkMatchEmail && this.checkMatchPass) {
-        console.log("OK");
         return true;
       } else {
         this.signupErrorMessage = "フォームに誤りがあります";
-        console.log("NG");
         return false;
       }
     },
@@ -221,10 +216,8 @@ export default {
       this.emailErrorMessage = "";
       if (this.signupForm.userMailCheck !== this.signupForm.userMail) {
         this.emailErrorMessage = "メールアドレスが一致しません";
-        console.log("email equal NG");
         return false;
       } else {
-        console.log("email equal OK");
         return true;
       }
     },
@@ -233,10 +226,8 @@ export default {
       // Password Checking
       if (this.signupForm.userPassCheck !== this.signupForm.userPass) {
         this.passErrorMessage = "パスワードが一致しません";
-        console.log("pass equal NG");
         return false;
       } else {
-        console.log("pass equal OK");
         return true;
       }
     },

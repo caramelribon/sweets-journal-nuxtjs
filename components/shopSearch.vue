@@ -390,7 +390,6 @@ export default {
         },
         (error) => {
           this.currentState = "IS_FAILED";
-          console.log(error.message);
         }
       );
     },
@@ -446,8 +445,6 @@ export default {
       this.allDataNum = null;
       this.countNum = 0;
       this.places = [];
-      console.log(this.genreName);
-      console.log(this.radiusName);
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
@@ -457,12 +454,9 @@ export default {
         await this.getPlaceData();
         this.countNum += this.getDataNum;
         this.startNum = this.countNum + 1;
-        console.log(this.allDataNum);
-        console.log(this.countNum);
         if (this.allDataNum === 0) {
           this.resultState = "NO_DATA";
         }
-        console.log(this.resultState);
       }
     },
     async getPlaceData() {
@@ -502,8 +496,8 @@ export default {
           // この処理で取得したデータ数
           this.getDataNum = Number(res.results.results_returned);
         })
-        .catch(() => {
-          console.log("エラー");
+        .catch((err) => {
+          console.log("エラー", err);
         });
     },
   },

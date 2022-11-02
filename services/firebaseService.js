@@ -50,7 +50,6 @@ export const onSignUp = async (userMail, userPass, userName) => {
       // 登録に失敗したときの処理
       console.error("登録エラー", error);
     });
-  console.log(userRegisterData);
   return userRegisterData;
 };
 
