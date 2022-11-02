@@ -148,7 +148,7 @@
 </template>
 
 <script>
-import { onSignUp, onLogin } from "~/services/firebaseService";
+import FirebaseService from "~/services/firebaseService";
 export default {
   data() {
     return {
@@ -172,7 +172,7 @@ export default {
   methods: {
     async onLogin() {
       // Login
-      const userData = await onLogin(
+      const userData = await FirebaseService.onLogin(
         this.loginForm.userMail,
         this.loginForm.userPass
       );
@@ -188,7 +188,7 @@ export default {
       const isSignupForm = this.checkSignupForm();
       if (isSignupForm) {
         // Signup
-        const userData = await onSignUp(
+        const userData = await FirebaseService.onSignUp(
           this.signupForm.userMail,
           this.signupForm.userPass,
           this.signupForm.userName

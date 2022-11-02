@@ -8,7 +8,7 @@ const placeRef = db.collection("places");
 const activeRef = db.collection("activities");
 const activeCountRef = db.collection("activityCount");
 
-export const onLogin = async (userMail, userPass) => {
+const onLogin = async (userMail, userPass) => {
   const userRegisteredData = await firebase
     .auth()
     .signInWithEmailAndPassword(userMail, userPass)
@@ -27,7 +27,7 @@ export const onLogin = async (userMail, userPass) => {
   return userRegisteredData;
 };
 
-export const onSignUp = async (userMail, userPass, userName) => {
+const onSignUp = async (userMail, userPass, userName) => {
   const userRegisterData = await firebase
     .auth()
     .createUserWithEmailAndPassword(userMail, userPass)
@@ -53,7 +53,7 @@ export const onSignUp = async (userMail, userPass, userName) => {
   return userRegisterData;
 };
 
-export const registerUserInformation = (userData) => {
+const registerUserInformation = (userData) => {
   userRef.doc(userData.id).set({
     uid: userData.id,
     email: userData.email,
@@ -62,7 +62,7 @@ export const registerUserInformation = (userData) => {
   });
 };
 
-export const getUserServePlaceData = async (userId, action) => {
+const getUserServePlaceData = async (userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   const placeIdData = await assignRef
     .where("user_id", "==", userId)
@@ -73,7 +73,7 @@ export const getUserServePlaceData = async (userId, action) => {
   return placeIdData;
 };
 
-export const registerPlace = async (place, action) => {
+const registerPlace = async (place, action) => {
   await placeRef.doc(place.id).set({
     id: place.id,
     name: place.name,
@@ -90,7 +90,7 @@ export const registerPlace = async (place, action) => {
   });
 };
 
-export const registerUserPlace = async (placeId, userId, action) => {
+const registerUserPlace = async (placeId, userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   await assignRef.doc().set({
     user_id: userId,
@@ -99,7 +99,7 @@ export const registerUserPlace = async (placeId, userId, action) => {
   });
 };
 
-export const registerActivity = async (
+const registerActivity = async (
   placeId,
   userId,
   userName,
@@ -123,7 +123,7 @@ export const registerActivity = async (
   await batch.commit();
 };
 
-export const deleteUserAction = async (placeId, userId, action) => {
+const deleteUserAction = async (placeId, userId, action) => {
   const batch = db.batch();
   const assignRef = action === "favorite" ? favRef : bmRef;
   // favorites or bookmarks内のdocument削除
@@ -154,7 +154,7 @@ export const deleteUserAction = async (placeId, userId, action) => {
   await batch.commit();
 };
 
-export const getRankingTop = async (action) => {
+const getRankingTop = async (action) => {
   const assignKey = action === "favorite" ? "favorite_count" : "bookmark_count";
   const rankingData = await placeRef
     .orderBy(assignKey, "desc")
@@ -168,7 +168,7 @@ export const getRankingTop = async (action) => {
   return rankingData;
 };
 
-export const registerUserAction = async (place, userId, userName, action) => {
+const registerUserAction = async (place, userId, userName, action) => {
   placeRef
     .doc(place.id)
     .get()
@@ -189,3 +189,16 @@ export const registerUserAction = async (place, userId, userName, action) => {
       await registerActivity(place.id, userId, userName, action);
     });
 };
+
+const FirebaseService = {
+  onLogin,
+  onSignUp,
+  registerActivity,
+  registerUserAction,
+  registerUserInformation,
+  deleteUserAction,
+  getRankingTop,
+  getUserServePlaceData,
+};
+
+export default FirebaseService;

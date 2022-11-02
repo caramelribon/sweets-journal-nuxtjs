@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import { getRankingTop } from "~/services/firebaseService";
+import FirebaseService from "~/services/firebaseService";
 export default {
   props: ["ranking"],
   data() {
@@ -99,7 +99,7 @@ export default {
   },
   async created() {
     // Ranking上位のお店の情報を取得
-    await getRankingTop(this.ranking)
+    await FirebaseService.getRankingTop(this.ranking)
       .then((result) => {
         this.rankingData = result.map((element, index) => ({
           ...element,

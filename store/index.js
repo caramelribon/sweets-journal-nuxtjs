@@ -1,9 +1,4 @@
-import {
-  deleteUserAction,
-  getUserServePlaceData,
-  registerUserAction,
-  registerUserInformation,
-} from "~/services/firebaseService";
+import FirebaseService from "~/services/firebaseService";
 
 export const state = () => ({
   user: {
@@ -43,7 +38,7 @@ export const actions = {
   },
   // signUp機能
   async signUp({ commit }, userData) {
-    await registerUserInformation(userData);
+    await FirebaseService.registerUserInformation(userData);
     commit("getData", {
       id: userData.id,
       name: userData.name,
@@ -52,37 +47,51 @@ export const actions = {
   },
   // ログインしたユーザの保存しているお店の取得
   async getUserServePlace({ commit }, userId) {
-    await getUserServePlaceData(userId, "favorite").then((result) => {
-      commit("getUserFavPlace", result);
-    });
-    await getUserServePlaceData(userId, "mark").then((result) => {
-      commit("getUserBmPlace", result);
-    });
+    await FirebaseService.getUserServePlaceData(userId, "favorite").then(
+      (result) => {
+        commit("getUserFavPlace", result);
+      }
+    );
+    await FirebaseService.getUserServePlaceData(userId, "mark").then(
+      (result) => {
+        commit("getUserBmPlace", result);
+      }
+    );
   },
   // お気に入り登録機能
   async onFavorite({ commit, state }, place) {
     // favorites・activities・placesへの登録
-    await registerUserAction(place, state.user.id, state.user.name, "favorite");
+    await FirebaseService.registerUserAction(
+      place,
+      state.user.id,
+      state.user.name,
+      "favorite"
+    );
     // stateのuserFavに登録
     commit("registerUserFavPlace", place);
   },
   // お気に入り解除機能
   async delFavorite({ commit, state }, place) {
     // favoritesからユーザIDとお店のIDの削除とActivityの削除
-    await deleteUserAction(place.id, state.user.id, "favorite");
+    await FirebaseService.deleteUserAction(place.id, state.user.id, "favorite");
     // stateのuserFavからplace_idを削除
     commit("deleteUserFavPlace", place);
   },
   // 気になる登録機能
   async onBookmark({ commit, state }, place) {
-    await registerUserAction(place, state.user.id, state.user.name, "mark");
+    await FirebaseService.registerUserAction(
+      place,
+      state.user.id,
+      state.user.name,
+      "mark"
+    );
     // stateのuserFavに登録
     commit("registerUserBmPlace", place);
   },
   // 気になる削除機能
   async delBookmark({ commit, state }, place) {
     // bookmarksからユーザIDとお店のIDの削除とActivityの削除
-    await deleteUserAction(place.id, state.user.id, "mark");
+    await FirebaseService.deleteUserAction(place.id, state.user.id, "mark");
     // stateのuserFavからplace_idを削除
     commit("deleteUserBmPlace", place);
   },
