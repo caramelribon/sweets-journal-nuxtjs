@@ -162,8 +162,10 @@ const getRankingTop = async (action) => {
     .limit(7)
     .get()
     .then((rankingSnapShot) => {
-      rankingSnapShot.docs.map((doc) => doc.get());
-      console.log(rankingSnapShot.docs);
+      const rankingDataDocs = rankingSnapShot.docs.map((doc) => {
+        return doc.data();
+      });
+      return rankingDataDocs;
     });
   return rankingData;
 };

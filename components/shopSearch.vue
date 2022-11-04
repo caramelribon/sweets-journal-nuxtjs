@@ -354,15 +354,10 @@
 import { mapGetters } from "vuex";
 export default {
   computed: {
-    ...mapGetters([
-      "user",
-      "userFavPlace",
-      "userBmPlace",
-    ]),
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
   },
   data() {
     return {
-      allDataNum: 0,
       countNum: 0,
       currentState: "IS_INITIALIZED",
       genre: "",
@@ -448,57 +443,43 @@ export default {
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
-      this.resultState = "GET_DATA";
-      // お店のデータ取得
-      while (this.allDataNum !== this.countNum) {
-        await this.getPlaceData();
-        this.countNum += this.getDataNum;
-        this.startNum = this.countNum + 1;
-        if (this.allDataNum === 0) {
-          this.resultState = "NO_DATA";
-        }
+      let placesTmpCnt = 0;
+      let allDataNum = -1;
+      try {
+        while (allDataNum !== placesTmpCnt) {
+        const { places100, allDataNum } = await this.getPlaceData(placesTmpCnt);
+        placesTmpCnt += places100.length;
+        this.resultState = allDataNum ? "GET_DATA" : "NO_DATA";
+        this.currentState = "IS_FOUND";
+        this.places = this.places.concat(places100);
+      }
+      } catch (e) {
+        this.resultState = "NO_DATA";
+        console.log(e.message);
       }
     },
-    async getPlaceData() {
-      await this.$axios
-        .$get(
-          `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`
-        )
-        .then((res) => {
-          this.currentState = "IS_FOUND";
-          const data = res.results.shop;
-          // お店の情報をplacesに格納
-          this.places = data.map((element) => {
-            const placeAccess = element.access ?? "";
-            const placeAddress = element.address ?? "";
-            const placeAverage = element.budget?.average ?? "";
-            const placeCatch = element.genre?.catch ?? "";
-            const placeId = element.id ?? "";
-            const placeName = element.name ?? "";
-            const placeOpen = element.open ?? "";
-            const placePhoto = element.photo?.pc?.l ?? "";
-            const placeUrl = element.urls?.pc ?? "";
-            const placeData = {
-              id: placeId,
-              name: placeName,
-              address: placeAddress,
-              access: placeAccess,
-              average: placeAverage,
-              catchcopy: placeCatch,
-              open: placeOpen,
-              photo: placePhoto,
-              url: placeUrl,
-            };
-            return placeData;
-          });
-          // 取得できる全てのデータ数
-          this.allDataNum = res.results.results_available;
-          // この処理で取得したデータ数
-          this.getDataNum = Number(res.results.results_returned);
-        })
-        .catch((err) => {
-          console.log("エラー", err);
-        });
+    async getPlaceData(placesCnt) {
+      const startIdx = placesCnt + 1;
+      const response = await this.$axios.$get(
+        `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${startIdx}&count=100`
+      );
+      const places100 = response.results.shop.map((place) => {
+        const placeData = {
+          id: place.id ?? "",
+          name: place.name ?? "",
+          address: place.address ?? "",
+          access: place.access ?? "",
+          average: place.budget?.average ?? "",
+          catchcopy: place.genre?.catch ?? "",
+          open: place.open ?? "",
+          photo: place.photo?.pc?.l ?? "",
+          url: place.urls?.pc ?? "",
+        };
+        return placeData;
+      });
+      // 取得できる全てのデータ数
+      const allDataNum = response.results.results_available;
+      return { places100, allDataNum };
     },
   },
 };
