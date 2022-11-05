@@ -48,15 +48,14 @@
         </div>
       </div>
       <!-- Favorite -->
-      <ranking-design ranking= "favorite" />
-      <ranking-design ranking= "mark" />
+      <ranking-design ranking="favorite" />
+      <ranking-design ranking="mark" />
     </div>
   </div>
 </template>
 
 <script>
-export default {
-};
+export default {};
 </script>
 
 <style scoped>

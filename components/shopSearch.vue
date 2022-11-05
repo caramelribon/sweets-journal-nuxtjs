@@ -358,7 +358,6 @@ export default {
   },
   data() {
     return {
-      countNum: 0,
       currentState: "IS_INITIALIZED",
       genre: "",
       genreName: "",
@@ -368,7 +367,6 @@ export default {
       radius: "",
       radiusName: "",
       resultState: "",
-      startNum: 1,
     };
   },
   methods: {
@@ -436,23 +434,23 @@ export default {
     },
     firstSetting() {
       this.currentState = "IS_FETCHING";
-      this.startNum = 1;
-      this.allDataNum = null;
-      this.countNum = 0;
       this.places = [];
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
       let placesTmpCnt = 0;
-      let allDataNum = -1;
+      let getAllDataNum = -1;
       try {
-        while (allDataNum !== placesTmpCnt) {
-        const { places100, allDataNum } = await this.getPlaceData(placesTmpCnt);
-        placesTmpCnt += places100.length;
-        this.resultState = allDataNum ? "GET_DATA" : "NO_DATA";
-        this.currentState = "IS_FOUND";
-        this.places = this.places.concat(places100);
-      }
+        while (getAllDataNum !== placesTmpCnt) {
+          const { places100, allDataNum } = await this.getPlaceData(
+            placesTmpCnt
+          );
+          getAllDataNum = allDataNum;
+          placesTmpCnt += places100.length;
+          this.resultState = allDataNum ? "GET_DATA" : "NO_DATA";
+          this.currentState = "IS_FOUND";
+          this.places = this.places.concat(places100);
+        }
       } catch (e) {
         this.resultState = "NO_DATA";
         console.log(e.message);

@@ -99,12 +99,7 @@ const registerUserPlace = async (placeId, userId, action) => {
   });
 };
 
-const registerActivity = async (
-  placeId,
-  userId,
-  userName,
-  actionName
-) => {
+const registerActivity = async (placeId, userId, userName, actionName) => {
   const batch = db.batch();
   // activitiesに登録
   const activeDocRef = await activeRef.doc();
@@ -162,10 +157,7 @@ const getRankingTop = async (action) => {
     .limit(7)
     .get()
     .then((rankingSnapShot) => {
-      const rankingDataDocs = rankingSnapShot.docs.map((doc) => {
-        return doc.data();
-      });
-      return rankingDataDocs;
+      return rankingSnapShot.docs.map((doc) => doc.data());
     });
   return rankingData;
 };
