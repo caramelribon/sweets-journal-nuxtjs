@@ -186,26 +186,22 @@ const registerUserAction = async (place, userId, userName, action) => {
 
 const userRegisteredPlaces = async (action, userId) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
-  const registeredPlaceData = await assignRef
+  const querySnapShot = await assignRef
     .where("user_id", "==", userId)
     .orderBy("created_at", "desc")
-    .get()
-    .then(async(querySnapShot) => {
-      const placeAllData = await Promise.all(
-        querySnapShot.docs.map(async (doc) => {
-          const placeId = doc.data().place_id;
-          const placeData = await placeRef
-            .doc(placeId)
-            .get()
-            .then((placeDoc) => {
-              if (!placeDoc.exists) return;
-              return placeDoc.data();
-            });
-          return placeData;
-        })
-      );
-      return placeAllData;
-    });
+    .get();
+  const promises = querySnapShot.docs.map(async (activeDoc) => {
+    const placeId = activeDoc.data().place_id;
+    const placeData = await placeRef
+      .doc(placeId)
+      .get()
+      .then((placeDoc) => {
+        if (!placeDoc.exists) return;
+        return placeDoc.data();
+      });
+    return placeData;
+  });
+  const registeredPlaceData = await Promise.all(promises);
   return registeredPlaceData;
 };
 
