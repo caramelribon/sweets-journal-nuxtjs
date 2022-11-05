@@ -244,40 +244,65 @@ export const getActivityNumber = async () => {
   return activityNumber;
 };
 
-const getDetailData = async (doc) => {
-  const activityData = [];
-  const placeId = doc.data().place_id;
-  const createdTime = doc.data().created_at.toDate();
-  const createdDate = `${createdTime.getFullYear()}/${
-    createdTime.getMonth() + 1
-  }/${createdTime.getDate()} ${createdTime.getHours()}:${createdTime.getMinutes()}:${createtime.getSeconds()}`;
+const getActivityDetailData = async (doc) => {
+  const placeid = doc.data().place_id;
+  console.log(placeid);
+  const username = doc.data().username;
+  const useraction = doc.data().action;
+  const createtime = doc.data().create_at.toDate();
+  const createdate = `${createtime.getFullYear()}/${
+    createtime.getMonth() + 1
+  }/${createtime.getDate()} ${createtime.getHours()}:${createtime.getMinutes()}:${createtime.getSeconds()}`;
+  let placeData = null;
+  let placeId = null;
+  let placeName = null;
+  let placeAddress = null;
+  let placeAccess = null;
+  let placeAverage = null;
+  let placeCatchcopy = null;
+  let placeOpen = null;
+  let placePhoto = null;
+  let placeUrl = null;
   await firebase
     .firestore()
     .collection("places")
-    .doc(placeId)
+    .doc(placeid)
     .get()
     .then((docRef) => {
       if (docRef !== null) {
-        activityData = docRef.data();
-        activityData = [
-          ...activityData,
-          {
-            action: doc.data().action,
-            created_at: createdDate,
-            userName: doc.data().username,
-          },
-        ];
+        placeData = docRef.data();
+        placeId = placeData.id;
+        placeName = placeData.name;
+        placeAddress = placeData.address;
+        placeAccess = placeData.access;
+        placeAverage = placeData.average;
+        placeCatchcopy = placeData.catchcopy;
+        placeOpen = placeData.open;
+        placePhoto = placeData.photo;
+        placeUrl = placeData.url;
       }
     });
 
-  return activityData;
+  return {
+    action: useraction,
+    create_at: createdate,
+    userName: username,
+    id: placeId,
+    name: placeName,
+    address: placeAddress,
+    access: placeAccess,
+    average: placeAverage,
+    catchcopy: placeCatchcopy,
+    open: placeOpen,
+    photo: placePhoto,
+    url: placeUrl,
+  };
 };
 
-
-export const getActivityData = async (getDataNum, pagingToken) => {
+// eslint-disable-next-line
+export async function getActivity(limit, pagingToken) {
   return new Promise((resolve, reject) => {
-    let query = activeRef.orderBy("create_at", "desc").limit(getDataNum);
-    // pagingTokenがあったら、取得する最初のデータを指定
+    let query = activeRef.orderBy("created_at", "desc").limit(limit);
     if (pagingToken !== null) {
       const [seconds, nanoseconds] = pagingToken.split(":");
       const timestamp = new firebase.firestore.Timestamp(seconds, nanoseconds);
@@ -289,27 +314,26 @@ export const getActivityData = async (getDataNum, pagingToken) => {
       .then(async (snapShot) => {
         // limitよりも多い件数データがあるならnextTokenを作成しておく
         let nextToken = null;
-        if (snapShot.docs.length >= getDataNum) {
-          const last = snapShot.docs[snapShot.docs.length - 1];
-          const lastData = last.data();
-          const time = lastData.created_at;
+        if (snapShot.docs.length >= limit) {
+          const lastData = snapShot.docs[snapShot.docs.length - 1].data();
+          const time = lastData.create_at;
           nextToken = `${time.seconds}:${time.nanoseconds}`;
         }
         const infoPromises = [];
         for (let i = 0; i < snapShot.docs.length; i += 1) {
           const doc = snapShot.docs[i];
-          infoPromises.push(getDetailData(doc));
+          infoPromises.push(getActivityDetailData(doc));
           console.log(infoPromises);
         }
         // 全ての詳細データが取得するまで待つ
         const infos = await Promise.all(infoPromises);
 
         console.log(infos, nextToken);
-        resolve({ buffData: infos, nextPageToken: nextToken });
+        resolve({ BuffData: infos, nextPageToken: nextToken });
       })
       .catch((err) => {
         console.log("エラーが発見されました：データ取得時", err);
         reject(new Error("firebaseからのデータ取得エラー"));
       });
   });
-};
+}

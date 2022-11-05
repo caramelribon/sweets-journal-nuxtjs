@@ -182,9 +182,13 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import { getActivityNumber, getActivityData } from "~/services/firebaseService";
 export default {
   middleware: "auth",
+  computed: {
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
+  },
   data() {
     return {
       activities: [],
@@ -250,21 +254,43 @@ export default {
     },
     onFavorite(place) {
       this.$store.dispatch("onFavorite", place);
-      this.favoritePlaces.unshift(place);
+      // 現在の時刻を取得
+      const now = new Date();
+      const createTime = `${now.getFullYear()}/${
+        now.getMonth() + 1
+      }/${now.getDate()}/${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
+      // activitiesにデータを追加
+      const placeData = place.concat({
+        userName: this.user.name,
+        created_at: createTime,
+        action: "favorite",
+      });
+      this.activities.unshift(placeData);
     },
     delFavorite(place) {
       this.$store.dispatch("delFavorite", place);
-      this.favoritePlaces = this.favoritePlaces.filter(
+      this.activities = this.activities.filter(
         (placeData) => placeData.id !== place.id
       );
     },
     onBookmark(place) {
       this.$store.dispatch("onBookmark", place);
-      this.bookmarkPlaces.unshift(place);
+      // 現在の時刻を取得
+      const now = new Date();
+      const createTime = `${now.getFullYear()}/${
+        now.getMonth() + 1
+      }/${now.getDate()}/${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
+      // activitiesにデータを追加
+      const placeData = place.concat({
+        userName: this.user.name,
+        created_at: createTime,
+        action: "bookmark",
+      });
+      this.activities.unshift(placeData);
     },
     delBookmark(place) {
       this.$store.dispatch("delBookmark", place);
-      this.bookmarkPlaces = this.bookmarkPlaces.filter(
+      this.activities = this.activities.filter(
         (placeData) => placeData.id !== place.id
       );
     },
