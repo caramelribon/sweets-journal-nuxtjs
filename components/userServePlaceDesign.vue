@@ -1,138 +1,205 @@
 <template>
-  <section>
-    <div class="flex items-start justify-center flex-row flex-wrap p-5">
-      <div v-for="place in userServePlaces" :key="place.id">
-        <!-- shop layout -->
-        <div class="m-4 card animate__animated animate__fadeInUp">
-          <!-- shop image -->
-          <div class="card-header">
-            <img
-              :src="place.photo"
-              width="300"
-              height="300"
-              class="card-image"
-            />
-          </div>
-          <!-- shop description and button(favorite and mark) -->
-          <section class="card-body">
-            <div class="shop-description">
-              <!-- shop name -->
-              <div class="place-info m-2 text-center">
-                <div class="my-1">
-                  <p class="text-navyblue text-center kaisei-medium">
-                    {{ place.name }}
-                  </p>
-                  <p
-                    class="text-navyblue text-center kaisei-medium text-xs my-2"
-                  >
-                    {{ place.catchcopy }}
-                  </p>
-                </div>
-                <p class="text-navyblue kaisei-medium text-xs my-2">
-                  {{ place.access }}
-                </p>
+  <div>
+    <!-- tab -->
+    <ul class="tabs-menu flex justify-center items-center">
+      <li
+        class="
+          text-4xl
+          sm:text-4xl
+          md:text-5xl
+          lg:text-6xl
+          xl:text-6xl
+          2xl:text-6xl
+          px-3
+        "
+        :class="{ active: activeTab === 'favorite' }"
+        @click="activeTab = 'favorite'"
+      >
+        Favorites
+      </li>
+      <li
+        class="
+          text-4xl
+          sm:text-4xl
+          md:text-5xl
+          lg:text-6xl
+          xl:text-6xl
+          2xl:text-6xl
+          px-10
+        "
+        :class="{ active: activeTab === 'bookmark' }"
+        @click="activeTab = 'bookmark'"
+      >
+        Marks
+      </li>
+    </ul>
+    <section class="tabs-content p-5">
+      <section>
+        <div class="flex items-start justify-center flex-row flex-wrap p-5">
+          <div
+            v-for="place in (userServePlaces =
+              activeTab === 'favorite'
+                ? userServeFavoritePlaces
+                : userServeBookmarkPlaces)"
+            :key="place.id"
+          >
+            <!-- shop layout -->
+            <div class="m-4 card animate__animated animate__fadeInUp">
+              <!-- shop image -->
+              <div class="card-header">
+                <img
+                  :src="place.photo"
+                  width="300"
+                  height="300"
+                  class="card-image"
+                />
               </div>
-              <!-- button (favorite and mark) -->
-              <div class="flex justify-end items-center">
-                <!-- favorite button -->
-                <div class="p-2">
-                  <button
-                    @click="onFavorite(place)"
-                    :disabled="!$store.state.user.isLogin"
-                    v-if="$store.state.userFavPlace.indexOf(place.id) === -1"
-                  >
-                    <i class="far fa-heart fa-lg"></i>
-                  </button>
-                  <button
-                    @click="delFavorite(place)"
-                    :disabled="!$store.state.user.isLogin"
-                    v-else
-                  >
-                    <i class="fas fa-heart fa-lg liked"></i>
-                  </button>
+              <!-- shop description and button(favorite and mark) -->
+              <section class="card-body">
+                <div class="shop-description">
+                  <!-- shop name -->
+                  <div class="place-info m-2 text-center">
+                    <div class="my-1">
+                      <p class="text-navyblue text-center kaisei-medium">
+                        {{ place.name }}
+                      </p>
+                      <p
+                        class="
+                          text-navyblue text-center
+                          kaisei-medium
+                          text-xs
+                          my-2
+                        "
+                      >
+                        {{ place.catchcopy }}
+                      </p>
+                    </div>
+                    <p class="text-navyblue kaisei-medium text-xs my-2">
+                      {{ place.access }}
+                    </p>
+                  </div>
+                  <!-- button (favorite and mark) -->
+                  <div class="flex justify-end items-center">
+                    <!-- favorite button -->
+                    <div class="p-2">
+                      <button
+                        @click="onFavorite(place)"
+                        :disabled="!user.isLogin"
+                        v-if="userFavPlace.indexOf(place.id) === -1"
+                      >
+                        <i class="far fa-heart fa-lg"></i>
+                      </button>
+                      <button
+                        @click="delFavorite(place)"
+                        :disabled="!user.isLogin"
+                        v-else
+                      >
+                        <i class="fas fa-heart fa-lg liked"></i>
+                      </button>
+                    </div>
+                    <!-- mark button -->
+                    <div class="p-2">
+                      <button
+                        @click="onBookmark(place)"
+                        :disabled="!user.isLogin"
+                        v-if="userBmPlace.indexOf(place.id) === -1"
+                      >
+                        <i class="far fa-bookmark fa-lg"></i>
+                      </button>
+                      <button
+                        @click="delBookmark(place)"
+                        :disabled="!user.isLogin"
+                        v-else
+                      >
+                        <i class="fas fa-bookmark fa-lg bookmarked"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <!-- mark button -->
-                <div class="p-2">
-                  <button
-                    @click="onBookmark(place)"
-                    :disabled="!$store.state.user.isLogin"
-                    v-if="$store.state.userBmPlace.indexOf(place.id) === -1"
-                  >
-                    <i class="far fa-bookmark fa-lg"></i>
-                  </button>
-                  <button
-                    @click="delBookmark(place)"
-                    :disabled="!$store.state.user.isLogin"
-                    v-else
-                  >
-                    <i class="fas fa-bookmark fa-lg bookmarked"></i>
-                  </button>
-                </div>
-              </div>
+                <ul class="card-information">
+                  <li class="text-navyblue kaisei-medium text-xs">
+                    {{ place.address }}
+                  </li>
+                  <li class="text-navyblue kaisei-medium text-xs">
+                    予算:{{ place.average }}
+                  </li>
+                  <li class="text-navyblue kaisei-medium text-xs">
+                    Open:{{ place.open }}
+                  </li>
+                  <li class="text-navyblue kaisei-medium text-xs">
+                    <a :href="place.url" target="_blank">
+                      さらに詳しい情報こちら
+                      <i class="fas fa-external-link-alt icon-color-blue"></i>
+                    </a>
+                  </li>
+                </ul>
+              </section>
             </div>
-            <ul class="card-information">
-              <li class="text-navyblue kaisei-medium text-xs">
-                {{ place.address }}
-              </li>
-              <li class="text-navyblue kaisei-medium text-xs">
-                予算:{{ place.average }}
-              </li>
-              <li class="text-navyblue kaisei-medium text-xs">
-                Open:{{ place.open }}
-              </li>
-              <li class="text-navyblue kaisei-medium text-xs">
-                <a :href="place.url" target="_blank">
-                  さらに詳しい情報こちら
-                  <i class="fas fa-external-link-alt icon-color-blue"></i>
-                </a>
-              </li>
-            </ul>
-          </section>
+          </div>
         </div>
-      </div>
-    </div>
-  </section>
+      </section>
+    </section>
+  </div>
 </template>
 
 <script>
-import { userRegisteredPlaces  } from '~/services/firebaseService';
+import { mapGetters } from "vuex";
+import FirebaseService from "~/services/firebaseService";
 export default {
-  props: ["action"],
+  computed: {
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
+  },
   data() {
     return {
-      userServePlaces: [],
+      activeTab: "favorite",
+      userServeFavoritePlaces: [],
+      userServeBookmarkPlaces: [],
     };
   },
   async created() {
-    console.log(this.action);
     // ユーザが登録しているお店の情報の取得
-    this.userServePlaces = await userRegisteredPlaces(
-      this.action,
-      this.$store.state.user.id
+    this.userServeFavoritePlaces = await FirebaseService.userRegisteredPlaces(
+      "favorite",
+      this.user.id
+    );
+    this.userServeBookmarkPlaces = await FirebaseService.userRegisteredPlaces(
+      "bookmark",
+      this.user.id
     );
   },
   methods: {
     onFavorite(place) {
       this.$store.dispatch("onFavorite", place);
+      // userServeBookmarkPlacesの方でfavoriteしたお店の情報がuserServeFavoritePlacesになかった場合、追加する
+      if (this.userServeFavoritePlaces.indexOf(place.id) === -1) {
+        const placeFavoriteData = this.userServeBookmarkPlaces.filter(
+          (placeData) => placeData.id === place.id
+        );
+        this.userServeFavoritePlaces.unshift(placeFavoriteData[0]);
+      }
     },
     delFavorite(place) {
       this.$store.dispatch("delFavorite", place);
-      if (this.action === "favorite") {
-        this.userServePlaces = this.userServePlaces.filter(
-          (placeData) => placeData.id !== place.id
-        );
-      }
+      this.userServeFavoritePlaces = this.userServeFavoritePlaces.filter(
+        (placeData) => placeData.id !== place.id
+      );
     },
     onBookmark(place) {
       this.$store.dispatch("onBookmark", place);
+      // userServeFavoritePlacesの方でbookmarkしたお店の情報がuserServeBookmarkPlacesになかった場合、追加する
+      if (this.userServeBookmarkPlaces.indexOf(place.id) === -1) {
+        const placeBookmarkData = this.userServeFavoritePlaces.filter(
+          (placeData) => placeData.id === place.id
+        );
+        console.log(placeBookmarkData);
+        this.userServeBookmarkPlaces.unshift(placeBookmarkData[0]);
+      }
     },
     delBookmark(place) {
       this.$store.dispatch("delBookmark", place);
-      if (this.action === "mark") {
-        this.userServePlaces = this.userServePlaces.filter(
-          (placeData) => placeData.id !== place.id
-        );
-      }
+      this.userServeBookmarkPlaces = this.userServeBookmarkPlaces.filter(
+        (placeData) => placeData.id !== place.id
+      );
     },
   },
 };

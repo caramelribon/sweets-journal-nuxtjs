@@ -42,7 +42,7 @@
                     <!-- User Profile (ユーザのプロフィールに繋がるボタン) -->
                     <div class="signup mr-1">
                       <n-link
-                        :to="`/users/${$store.state.user.id}`"
+                        :to="`/users/${user.id}`"
                         class="
                           block
                           leading-none
@@ -115,9 +115,7 @@ import { mapGetters } from "vuex";
 import firebase from "~/plugins/firebase";
 export default {
   computed: {
-    ...mapGetters({
-      user: "user",
-    }),
+    ...mapGetters(["user"]),
   },
   data() {
     return {

@@ -99,7 +99,6 @@ export const actions = {
 
 export const mutations = {
   getData(state, payload) {
-    console.log(payload.id, payload.name);
     state.user.id = payload.id;
     state.user.name = payload.name;
   },

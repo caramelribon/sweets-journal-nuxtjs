@@ -14,7 +14,7 @@
             user-name
           "
         >
-          {{ $store.state.user.name }}
+          {{ user.name }}
         </p>
         <div class="animate__animated animate__fadeInUp mt-24 mb-2">
           <p
@@ -32,57 +32,20 @@
           </p>
         </div>
       </div>
-      <!-- tab -->
-      <ul class="tabs-menu flex justify-center items-center">
-        <li
-          class="
-            text-4xl
-            sm:text-4xl
-            md:text-5xl
-            lg:text-6xl
-            xl:text-6xl
-            2xl:text-6xl
-            px-3
-          "
-          :class="{ active: activeTab === 'favorite' }"
-          @click="activeTab = 'favorite'"
-        >
-          Favorites
-        </li>
-        <li
-          class="
-            text-4xl
-            sm:text-4xl
-            md:text-5xl
-            lg:text-6xl
-            xl:text-6xl
-            2xl:text-6xl
-            px-10
-          "
-          :class="{ active: activeTab === 'bookmark' }"
-          @click="activeTab = 'bookmark'"
-        >
-          Marks
-        </li>
-      </ul>
       <!-- tab contents -->
-      <section class="tabs-content p-5">
-        <user-serve-place-design v-show="activeTab === 'favorite'" action = "favorite" />
-        <user-serve-place-design v-show="activeTab === 'bookmark'" action = "mark" />
-      </section>
+      <user-serve-place-design />
     </div>
     <app-footer />
   </div>
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
-  middleware: 'auth',
-  data() {
-    return {
-      activeTab: "favorite",
-    };
+  computed: {
+    ...mapGetters(["user"]),
   },
+  middleware: "auth",
 };
 </script>
 
