@@ -260,7 +260,7 @@ const getActivitiesData = async (limit, startToken) => {
   const promises = activeSnapShot.docs.map(async (activeDoc) => {
     return await getActivityDetailData(activeDoc);
   });
-  const activityData10 = await Promise.all(promises);
+  const activityData10 = (await Promise.all(promises)).filter((el) => el);
   return { activityData10, nextToken };
 };
 

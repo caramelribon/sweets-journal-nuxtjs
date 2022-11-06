@@ -189,11 +189,12 @@
 </template>
 
 <script>
-import {
-  getActivityCountNum,
-  getActivitiesData,
-} from "~/services/firebaseService";
+import { mapGetters } from "vuex";
+import FirebaseService from "~/services/firebaseService";
 export default {
+  computed: {
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
+  },
   middleware: "auth",
   data() {
     return {
@@ -205,7 +206,7 @@ export default {
     };
   },
   async created() {
-    const allDataNum = await getActivityCountNum();
+    const allDataNum = await FirebaseService.getActivityCountNum();
     if (allDataNum === 0) {
       this.isExistData = false;
     }
@@ -224,17 +225,18 @@ export default {
     },
     // activityデータを取得
     async getActivityData(num) {
-      const activityData = await getActivitiesData(num, this.nextToken).catch(
-        (err) => {
-          console.log("Can not catch first activity data", err);
-        }
-      );
+      const activityData = await FirebaseService.getActivitiesData(
+        num,
+        this.nextToken
+      ).catch((err) => {
+        console.log("Can not catch first activity data", err);
+      });
       this.activities = this.activities.concat(activityData.activityData10);
       this.nextToken = activityData.nextToken;
       this.countNum -= activityData.activityData10.length;
     },
-    onFavorite(place) {
-      this.$store.dispatch("onFavorite", place);
+    async onFavorite(place) {
+      await this.$store.dispatch("onFavorite", place);
       // 現在の時刻を取得
       const now = new Date();
       const createTime = `${now.getFullYear()}/${
@@ -244,28 +246,28 @@ export default {
       const placeData = {
         ...place,
         ...{
-          userName: this.$store.state.user.name,
+          userName: this.user.name,
           created_at: createTime,
           action: "favorite",
         },
       };
       this.activities.unshift(placeData);
     },
-    delFavorite(place) {
-      this.$store.dispatch("delFavorite", place);
+    async delFavorite(place) {
+      await this.$store.dispatch("delFavorite", place);
       // 削除するデータ
       const deleteData = this.activities.find(
         (placeData) =>
           placeData.id === place.id &&
-          placeData.userName === this.$store.state.user.name &&
+          placeData.userName === this.user.name &&
           placeData.action === "favorite"
       );
       this.activities = this.activities.filter(
         (placeData) => placeData !== deleteData
       );
     },
-    onBookmark(place) {
-      this.$store.dispatch("onBookmark", place);
+    async onBookmark(place) {
+      await this.$store.dispatch("onBookmark", place);
       // 現在の時刻を取得
       const now = new Date();
       const createTime = `${now.getFullYear()}/${
@@ -275,20 +277,20 @@ export default {
       const placeData = {
         ...place,
         ...{
-          userName: this.$store.state.user.name,
+          userName: this.user.name,
           created_at: createTime,
           action: "mark",
         },
       };
       this.activities.unshift(placeData);
     },
-    delBookmark(place) {
-      this.$store.dispatch("delBookmark", place);
+    async delBookmark(place) {
+      await this.$store.dispatch("delBookmark", place);
       // 削除するデータ
       const deleteData = this.activities.find(
         (placeData) =>
           placeData.id === place.id &&
-          placeData.userName === this.$store.state.user.name &&
+          placeData.userName === this.user.name &&
           placeData.action === "mark"
       );
       this.activities = this.activities.filter(
