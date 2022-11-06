@@ -39,7 +39,7 @@
                             my-2
                           "
                         >
-                          {{ place.catchcopy }}
+                          {{ place.catchCopy }}
                         </p>
                       </div>
                       <p class="text-navyblue kaisei-medium text-xs my-2">

@@ -98,9 +98,12 @@
             </div>
             <!-- Activity Button (アクティビティボタン) -->
             <button class="btn btn--activity">
-              <button class="block lora-bold text-lightgray text-lg">
+              <n-link
+                to="/activity"
+                class="block lora-bold text-lightgray text-lg"
+              >
                 Activity
-              </button>
+              </n-link>
             </button>
             <label for="actionMenuButton" class="btn btn--large btn--menu" />
           </div>
