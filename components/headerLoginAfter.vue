@@ -33,7 +33,7 @@
                 <div class="mt-2 mx-3 border-b text-center">
                   <i class="user-icon fas fa-user-circle fa-4x"></i>
                   <p class="text-center py-1 text-2xl user-name-login">
-                    {{ $store.state.user.name }}
+                    {{ user.name }}
                   </p>
                 </div>
                 <!-- Button Area (ボタンエリア) -->
@@ -42,7 +42,7 @@
                     <!-- User Profile (ユーザのプロフィールに繋がるボタン) -->
                     <div class="signup mr-1">
                       <n-link
-                        :to="`/users/${$store.state.user.id}`"
+                        :to="`/users/${user.id}`"
                         class="
                           block
                           leading-none
@@ -114,8 +114,12 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 import firebase from "~/plugins/firebase";
 export default {
+  computed: {
+    ...mapGetters(["user"]),
+  },
   data() {
     return {
       isUserInfo: false,
@@ -138,7 +142,6 @@ export default {
           this.$router.push("/");
         })
         .catch((error) => {
-          console.log(error);
           alert("ログアウトに失敗しました");
         });
     },

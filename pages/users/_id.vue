@@ -14,7 +14,7 @@
             user-name
           "
         >
-          {{ $store.state.user.name }}
+          {{ user.name }}
         </p>
         <div class="animate__animated animate__fadeInUp mt-24 mb-2">
           <p
@@ -32,6 +32,7 @@
           </p>
         </div>
       </div>
+      <!-- tab contents -->
       <!-- tab -->
       <ul class="tabs-menu flex justify-center items-center">
         <li
@@ -65,11 +66,10 @@
           Marks
         </li>
       </ul>
-      <!-- tab contents -->
       <section class="tabs-content p-5">
-        <section v-show="activeTab === 'favorite'">
+        <section>
           <div class="flex items-start justify-center flex-row flex-wrap p-5">
-            <div v-for="place in favoritePlaces" :key="place.id">
+            <div v-for="place in userServePlaces" :key="place.id">
               <!-- shop layout -->
               <div class="m-4 card animate__animated animate__fadeInUp">
                 <!-- shop image -->
@@ -111,16 +111,14 @@
                       <div class="p-2">
                         <button
                           @click="onFavorite(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-if="
-                            $store.state.userFavPlace.indexOf(place.id) === -1
-                          "
+                          :disabled="!user.isLogin"
+                          v-if="userFavPlace.indexOf(place.id) === -1"
                         >
                           <i class="far fa-heart fa-lg"></i>
                         </button>
                         <button
                           @click="delFavorite(place)"
-                          :disabled="!$store.state.user.isLogin"
+                          :disabled="!user.isLogin"
                           v-else
                         >
                           <i class="fas fa-heart fa-lg liked"></i>
@@ -130,16 +128,14 @@
                       <div class="p-2">
                         <button
                           @click="onBookmark(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-if="
-                            $store.state.userBmPlace.indexOf(place.id) === -1
-                          "
+                          :disabled="!user.isLogin"
+                          v-if="userBmPlace.indexOf(place.id) === -1"
                         >
                           <i class="far fa-bookmark fa-lg"></i>
                         </button>
                         <button
                           @click="delBookmark(place)"
-                          :disabled="!$store.state.user.isLogin"
+                          :disabled="!user.isLogin"
                           v-else
                         >
                           <i class="fas fa-bookmark fa-lg bookmarked"></i>
@@ -158,108 +154,6 @@
                       Open:{{ place.open }}
                     </li>
                     <li class="text-navyblue kaisei-medium text-xs">
-                      <a :href="place.url" target="_blank">
-                        さらに詳しい情報こちら
-                        <i class="fas fa-external-link-alt icon-color-blue"></i>
-                      </a>
-                    </li>
-                  </ul>
-                </section>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section v-show="activeTab === 'bookmark'">
-          <div class="flex items-start justify-center flex-row flex-wrap p-5">
-            <div v-for="place in bookmarkPlaces" :key="place.id">
-              <!-- shop layout -->
-              <div class="m-4 card animate__animated animate__fadeInUp">
-                <!-- shop image -->
-                <div class="card-header">
-                  <img
-                    :src="place.photo"
-                    width="300"
-                    height="300"
-                    class="card-image"
-                  />
-                </div>
-                <!-- shop description and button(favorite and mark) -->
-                <section class="card-body">
-                  <div class="shop-description">
-                    <!-- shop name -->
-                    <div class="place-info m-2 text-center">
-                      <div class="my-1">
-                        <p class="text-navyblue text-center kaisei-medium">
-                          {{ place.name }}
-                        </p>
-                        <p
-                          class="
-                            text-navyblue text-center
-                            kaisei-medium
-                            text-xs
-                            my-2
-                          "
-                        >
-                          {{ place.catchcopy }}
-                        </p>
-                      </div>
-                      <p class="text-navyblue kaisei-medium text-xs my-2">
-                        {{ place.access }}
-                      </p>
-                    </div>
-                    <!-- button (favorite and mark) -->
-                    <div class="flex justify-end items-center">
-                      <!-- favorite button -->
-                      <div class="p-2">
-                        <button
-                          @click="onFavorite(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-if="
-                            $store.state.userFavPlace.indexOf(place.id) === -1
-                          "
-                        >
-                          <i class="far fa-heart fa-lg"></i>
-                        </button>
-                        <button
-                          @click="delFavorite(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-else
-                        >
-                          <i class="fas fa-heart fa-lg liked"></i>
-                        </button>
-                      </div>
-                      <!-- mark button -->
-                      <div class="p-2">
-                        <button
-                          @click="onBookmark(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-if="
-                            $store.state.userBmPlace.indexOf(place.id) === -1
-                          "
-                        >
-                          <i class="far fa-bookmark fa-lg"></i>
-                        </button>
-                        <button
-                          @click="delBookmark(place)"
-                          :disabled="!$store.state.user.isLogin"
-                          v-else
-                        >
-                          <i class="fas fa-bookmark fa-lg bookmarked"></i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <ul class="card-information">
-                    <li class="text-navyblue kaisei-medium text-sm">
-                      {{ place.address }}
-                    </li>
-                    <li class="text-navyblue kaisei-medium text-sm">
-                      予算:{{ place.average }}
-                    </li>
-                    <li class="text-navyblue kaisei-medium text-sm">
-                      Open:{{ place.open }}
-                    </li>
-                    <li class="text-navyblue kaisei-medium">
                       <a :href="place.url" target="_blank">
                         さらに詳しい情報こちら
                         <i class="fas fa-external-link-alt icon-color-blue"></i>
@@ -278,45 +172,67 @@
 </template>
 
 <script>
-import { userRegisteredPlaces } from "../../services/firebaseService";
+import { mapGetters } from "vuex";
+import FirebaseService from "~/services/firebaseService";
 export default {
-  middleware: 'auth',
+  middleware: "auth",
+  computed: {
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
+    userServePlaces() {
+      return this.activeTab === "favorite"
+        ? this.userServeFavoritePlaces
+        : this.userServeBookmarkPlaces;
+    },
+  },
   data() {
     return {
       activeTab: "favorite",
-      bookmarkPlaces: [],
-      favoritePlaces: [],
+      userServeFavoritePlaces: [],
+      userServeBookmarkPlaces: [],
     };
   },
-  async created() {
+    async created() {
     // ユーザが登録しているお店の情報の取得
-    this.favoritePlaces = await userRegisteredPlaces(
+    this.userServeFavoritePlaces = await FirebaseService.userRegisteredPlaces(
       "favorite",
-      this.$store.state.user.id
+      this.user.id
     );
-    this.bookmarkPlaces = await userRegisteredPlaces(
-      "mark",
-      this.$store.state.user.id
+    this.userServeBookmarkPlaces = await FirebaseService.userRegisteredPlaces(
+      "bookmark",
+      this.user.id
     );
   },
   methods: {
     onFavorite(place) {
       this.$store.dispatch("onFavorite", place);
-      this.favoritePlaces.unshift(place);
+      // userServeBookmarkPlacesの方でfavoriteしたお店の情報がuserServeFavoritePlacesになかった場合、追加する
+      if (this.userServeFavoritePlaces.indexOf(place.id) === -1) {
+        const placeFavoriteData = this.userServeBookmarkPlaces.filter(
+          (placeData) => placeData.id === place.id
+        );
+        this.userServeFavoritePlaces.unshift(placeFavoriteData[0]);
+      }
     },
     delFavorite(place) {
       this.$store.dispatch("delFavorite", place);
-      this.favoritePlaces = this.favoritePlaces.filter(
+      this.userServeFavoritePlaces = this.userServeFavoritePlaces.filter(
         (placeData) => placeData.id !== place.id
       );
     },
     onBookmark(place) {
       this.$store.dispatch("onBookmark", place);
-      this.bookmarkPlaces.unshift(place);
+      // userServeFavoritePlacesの方でbookmarkしたお店の情報がuserServeBookmarkPlacesになかった場合、追加する
+      if (this.userServeBookmarkPlaces.indexOf(place.id) === -1) {
+        const placeBookmarkData = this.userServeFavoritePlaces.filter(
+          (placeData) => placeData.id === place.id
+        );
+        console.log(placeBookmarkData);
+        this.userServeBookmarkPlaces.unshift(placeBookmarkData[0]);
+      }
     },
     delBookmark(place) {
       this.$store.dispatch("delBookmark", place);
-      this.bookmarkPlaces = this.bookmarkPlaces.filter(
+      this.userServeBookmarkPlaces = this.userServeBookmarkPlaces.filter(
         (placeData) => placeData.id !== place.id
       );
     },
@@ -326,6 +242,55 @@ export default {
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Antic+Didone&family=Elsie&family=Italiana&family=Kaisei+Decol:wght@400;500;700&family=Lobster&family=Lora:wght@400;700&display=swap");
+.tabs-menu {
+  list-style: none;
+}
+.tabs-menu li {
+  display: block;
+  float: left;
+  color: #f2ebe5;
+  font-family: "Lora", serif;
+  font-weight: bold;
+  text-shadow: 0 1px #6e7a7c, 0 2px #6a7678, 0 3px #687375, 0 4px #667173,
+    0 5px #626d6f, 0 6px #5f6a6c, 0 7px #5d6769, 0 8px #596365, 0 9px #566062,
+    0 10px 8px #50595b;
+  text-decoration: none;
+  transition: 0.5s ease all;
+}
+/* タブにマウスを乗せたらカーソルの形を変える */
+.tabs-menu li:hover {
+  cursor: pointer;
+  transform: translate(0px, 10px);
+  text-shadow: none;
+}
+/* 非選択のタブにマウスを乗せたら色を変える */
+.tabs-menu li:not(.active):hover {
+  transform: translate(0px, 10px);
+  text-shadow: none;
+}
+/* 選択中のタブ */
+.tabs-menu .active {
+  transform: translate(0px, 10px);
+  text-shadow: none;
+}
+.lightblue-bg {
+  background-color: #717d7f;
+  background: linear-gradient(to right, #747e80, #697779, #5f7174);
+}
+.user-name {
+  color: #f2ebe5;
+  font-family: "Lora", serif;
+  font-weight: bold;
+  text-shadow: 0 1px #6e7a7c, 0 2px #6a7678, 0 3px #687375, 0 4px #667173,
+    0 5px #626d6f, 0 6px #5f6a6c, 0 7px #5d6769, 0 8px #596365, 0 9px #566062,
+    0 10px 8px #50595b;
+}
+.user-profile {
+  min-height: 100vh;
+  position: relative; /*←相対位置*/
+  padding-bottom: 60px; /*←footerの高さ*/
+  box-sizing: border-box;
+}
 /* card layout */
 .card {
   padding: 20px;

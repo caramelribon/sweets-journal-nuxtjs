@@ -8,7 +8,7 @@ const placeRef = db.collection("places");
 const activeRef = db.collection("activities");
 const activeCountRef = db.collection("activityCount");
 
-export const onLogin = async (userMail, userPass) => {
+const onLogin = async (userMail, userPass) => {
   const userRegisteredData = await firebase
     .auth()
     .signInWithEmailAndPassword(userMail, userPass)
@@ -27,7 +27,7 @@ export const onLogin = async (userMail, userPass) => {
   return userRegisteredData;
 };
 
-export const onSignUp = async (userMail, userPass, userName) => {
+const onSignUp = async (userMail, userPass, userName) => {
   const userRegisterData = await firebase
     .auth()
     .createUserWithEmailAndPassword(userMail, userPass)
@@ -50,11 +50,10 @@ export const onSignUp = async (userMail, userPass, userName) => {
       // 登録に失敗したときの処理
       console.error("登録エラー", error);
     });
-  console.log(userRegisterData);
   return userRegisterData;
 };
 
-export const registerUserInformation = (userData) => {
+const registerUserInformation = (userData) => {
   userRef.doc(userData.id).set({
     uid: userData.id,
     email: userData.email,
@@ -63,21 +62,18 @@ export const registerUserInformation = (userData) => {
   });
 };
 
-export const getUserServePlaceData = async (userId, action) => {
-  const placeIdData = [];
+const getUserServePlaceData = async (userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
-  await assignRef
+  const placeIdData = await assignRef
     .where("user_id", "==", userId)
     .get()
-    .then((snapShot) => {
-      snapShot.forEach((doc) => {
-        placeIdData.push(doc.data().place_id);
-      });
-    });
+    .then((placeSnapShot) =>
+      placeSnapShot.docs.map((doc) => doc.get("place_id"))
+    );
   return placeIdData;
 };
 
-export const registerPlace = async (place, action) => {
+const registerPlace = async (place, action) => {
   await placeRef.doc(place.id).set({
     id: place.id,
     name: place.name,
@@ -94,7 +90,7 @@ export const registerPlace = async (place, action) => {
   });
 };
 
-export const registerUserPlace = async (placeId, userId, action) => {
+const registerUserPlace = async (placeId, userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   await assignRef.doc().set({
     user_id: userId,
@@ -103,16 +99,11 @@ export const registerUserPlace = async (placeId, userId, action) => {
   });
 };
 
-export const registerActivity = async (
-  placeId,
-  userId,
-  userName,
-  actionName
-) => {
+const registerActivity = async (placeId, userId, userName, actionName) => {
   const batch = db.batch();
   // activitiesに登録
-  const activeDataRef = await activeRef.doc();
-  batch.set(activeDataRef, {
+  const activeDocRef = await activeRef.doc();
+  batch.set(activeDocRef, {
     user_id: userId,
     username: userName,
     place_id: placeId,
@@ -120,14 +111,14 @@ export const registerActivity = async (
     created_at: firebase.firestore.FieldValue.serverTimestamp(),
   });
   // activityCountを+1して更新
-  const activeCountDataRef = await activeCountRef.doc("count");
-  batch.update(activeCountDataRef, {
+  const activeCountDocRef = await activeCountRef.doc("count");
+  batch.update(activeCountDocRef, {
     activityCount: firebase.firestore.FieldValue.increment(1),
   });
   await batch.commit();
 };
 
-export const deleteUserAction = async (placeId, userId, action) => {
+const deleteUserAction = async (placeId, userId, action) => {
   const batch = db.batch();
   const assignRef = action === "favorite" ? favRef : bmRef;
   // favorites or bookmarks内のdocument削除
@@ -135,71 +126,53 @@ export const deleteUserAction = async (placeId, userId, action) => {
     .where("user_id", "==", userId)
     .where("place_id", "==", placeId)
     .get();
-  querySnapshot.forEach((doc) => {
-    batch.delete(doc.ref);
+  batch.delete(querySnapshot.docs[0].ref);
+  // placeのfavorite_count or bookmark_countを-1する
+  const assignKey = action === "favorite" ? "favorite_count" : "bookmark_count";
+  const placeDocRef = await placeRef.doc(placeId);
+  batch.update(placeDocRef, {
+    [assignKey]: firebase.firestore.FieldValue.increment(-1),
   });
-  // placeのfavorite_countを-1する
-  const placeDataRef = await placeRef.doc(placeId);
-  if (action === "favorite_count") {
-    batch.update(placeDataRef, {
-      favorite_count: firebase.firestore.FieldValue.increment(-1),
-    });
-  } else {
-    batch.update(placeDataRef, {
-      bookmark_count: firebase.firestore.FieldValue.increment(-1),
-    });
-  }
   // activityを削除
-  const querySnapshotActivity = await activeRef
+  const activeQuerySnapshot = await activeRef
     .where("user_id", "==", userId)
     .where("place_id", "==", placeId)
     .where("action", "==", action)
     .get();
-  querySnapshotActivity.forEach((doc) => {
-    batch.delete(doc.ref);
-    console.log("Cancel activity of favorite!");
-  });
+  batch.delete(activeQuerySnapshot.docs[0].ref);
+  console.log("Cancel activity of favorite!");
   // activityCountを-1して更新
-  const activeCountDataRef = await activeCountRef.doc("count");
-  batch.update(activeCountDataRef, {
+  const activeCountDocRef = await activeCountRef.doc("count");
+  batch.update(activeCountDocRef, {
     activityCount: firebase.firestore.FieldValue.increment(-1),
   });
   await batch.commit();
 };
 
-export const getRankingTop = async (action) => {
-  const rankingData = [];
-  const assignName =
-    action === "favorite" ? "favorite_count" : "bookmark_count";
-  await placeRef
-    .orderBy(assignName, "desc")
+const getRankingTop = async (action) => {
+  const assignKey = action === "favorite" ? "favorite_count" : "bookmark_count";
+  const rankingData = await placeRef
+    .orderBy(assignKey, "desc")
     .orderBy("created_at", "desc")
     .limit(7)
     .get()
-    .then((snapShot) => {
-      snapShot.forEach((doc) => {
-        rankingData.push(doc.data());
-      });
+    .then((rankingSnapShot) => {
+      return rankingSnapShot.docs.map((doc) => doc.data());
     });
   return rankingData;
 };
 
-export const registerUserAction = async (place, userId, userName, action) => {
+const registerUserAction = async (place, userId, userName, action) => {
   placeRef
     .doc(place.id)
     .get()
-    .then(async (doc) => {
-      if (doc.exists) {
-        if (action === "favorite") {
-          // お店の情報がすでに登録されていたら、favorite_countを+1して更新
-          await placeRef.doc(place.id).update({
-            favorite_count: firebase.firestore.FieldValue.increment(1),
-          });
-        } else {
-          await placeRef.doc(place.id).update({
-            bookmark_count: firebase.firestore.FieldValue.increment(1),
-          });
-        }
+    .then(async (placeDoc) => {
+      if (placeDoc.exists) {
+        const assignKey =
+          action === "favorite" ? "favorite_count" : "bookmark_count";
+        await placeRef.doc(place.id).update({
+          [assignKey]: firebase.firestore.FieldValue.increment(1),
+        });
       } else {
         // お店の情報が登録されていなかったら、登録
         await registerPlace(place, action);
@@ -211,29 +184,28 @@ export const registerUserAction = async (place, userId, userName, action) => {
     });
 };
 
-export const userRegisteredPlaces = async (action, userId) => {
-  const placeData = [];
+const userRegisteredPlaces = async (action, userId) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
-  await assignRef
+  const querySnapShot = await assignRef
     .where("user_id", "==", userId)
     .orderBy("created_at", "desc")
-    .get()
-    .then((snapShot) => {
-      snapShot.forEach((doc) => {
-        const placeId = doc.data().place_id;
-        placeRef
-          .doc(placeId)
-          .get()
-          .then((place) => {
-            if (!place) return;
-            placeData.push(place.data());
-          });
+    .get();
+  const promises = querySnapShot.docs.map(async (activeDoc) => {
+    const placeId = activeDoc.data().place_id;
+    const placeData = await placeRef
+      .doc(placeId)
+      .get()
+      .then((placeDoc) => {
+        if (!placeDoc.exists) return;
+        return placeDoc.data();
       });
-    });
-  return placeData;
+    return placeData;
+  });
+  const registeredPlaceData = await Promise.all(promises);
+  return registeredPlaceData;
 };
 
-export const getActivityCountNum = async () => {
+const getActivityCountNum = async () => {
   const activityCountNum = await activeCountRef
     .doc("count")
     .get()
@@ -270,7 +242,7 @@ const getActivityDetailData = async (activeDoc) => {
   return activityData;
 };
 
-export const getActivitiesData = async (limit, startToken) => {
+const getActivitiesData = async (limit, startToken) => {
   let nextToken = "";
   let query = activeRef.orderBy("created_at", "desc").limit(limit);
   if (startToken !== null) {
@@ -291,3 +263,19 @@ export const getActivitiesData = async (limit, startToken) => {
   const activityData10 = await Promise.all(promises);
   return { activityData10, nextToken };
 };
+
+const FirebaseService = {
+  onLogin,
+  onSignUp,
+  registerActivity,
+  registerUserAction,
+  registerUserInformation,
+  deleteUserAction,
+  getActivityCountNum,
+  getActivitiesData,
+  getRankingTop,
+  getUserServePlaceData,
+  userRegisteredPlaces,
+};
+
+export default FirebaseService;

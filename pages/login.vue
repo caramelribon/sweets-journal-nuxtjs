@@ -148,13 +148,8 @@
 </template>
 
 <script>
-import { onSignUp, onLogin } from "~/services/firebaseService";
+import FirebaseService from "~/services/firebaseService";
 export default {
-  computed: {
-    user() {
-      return this.store.getters["user"];
-    },
-  },
   data() {
     return {
       loginErrorMessage: "",
@@ -177,25 +172,23 @@ export default {
   methods: {
     async onLogin() {
       // Login
-      const userData = await onLogin(
+      const userData = await FirebaseService.onLogin(
         this.loginForm.userMail,
         this.loginForm.userPass
       );
-      console.log(userData);
       if (userData) {
         this.$store.dispatch("checkLogin", userData);
         this.$router.push("/");
       } else {
-       this.loginErrorMessage = "ログインできませんでした";
+        this.loginErrorMessage = "ログインできませんでした";
       }
     },
     async onSignUp() {
       this.signupErrorMessage = "";
       const isSignupForm = this.checkSignupForm();
       if (isSignupForm) {
-        console.log("All OK");
         // Signup
-        const userData = await onSignUp(
+        const userData = await FirebaseService.onSignUp(
           this.signupForm.userMail,
           this.signupForm.userPass,
           this.signupForm.userName
@@ -209,16 +202,13 @@ export default {
         }
       } else {
         this.signupErrorMessage = "フォームに誤りがあります";
-        console.log(this.signupErrorMessage);
       }
     },
     checkSignupForm() {
       if (this.checkMatchEmail && this.checkMatchPass) {
-        console.log("OK");
         return true;
       } else {
         this.signupErrorMessage = "フォームに誤りがあります";
-        console.log("NG");
         return false;
       }
     },
@@ -226,10 +216,8 @@ export default {
       this.emailErrorMessage = "";
       if (this.signupForm.userMailCheck !== this.signupForm.userMail) {
         this.emailErrorMessage = "メールアドレスが一致しません";
-        console.log("email equal NG");
         return false;
       } else {
-        console.log("email equal OK");
         return true;
       }
     },
@@ -238,10 +226,8 @@ export default {
       // Password Checking
       if (this.signupForm.userPassCheck !== this.signupForm.userPass) {
         this.passErrorMessage = "パスワードが一致しません";
-        console.log("pass equal NG");
         return false;
       } else {
-        console.log("pass equal OK");
         return true;
       }
     },

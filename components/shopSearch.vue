@@ -252,7 +252,6 @@
       <p
         class="
           animate__animated
-
           text-beige text-center
           my-5
           kaisei-medium
@@ -311,14 +310,14 @@
                   <div class="flex justify-center items-center">
                     <button
                       @click="$store.dispatch('onFavorite', place)"
-                      :disabled="!$store.state.user.isLogin"
-                      v-if="$store.state.userFavPlace.indexOf(place.id) === -1"
+                      :disabled="!user.isLogin"
+                      v-if="userFavPlace.indexOf(place.id) === -1"
                     >
                       <i class="far fa-heart fa-lg"></i>
                     </button>
                     <button
                       @click="$store.dispatch('delFavorite', place)"
-                      :disabled="!$store.state.user.isLogin"
+                      :disabled="!user.isLogin"
                       v-else
                     >
                       <i class="fas fa-heart fa-lg liked"></i>
@@ -328,14 +327,14 @@
                   <div class="flex justify-center items-center">
                     <button
                       @click="$store.dispatch('onBookmark', place)"
-                      :disabled="!$store.state.user.isLogin"
-                      v-if="$store.state.userBmPlace.indexOf(place.id) === -1"
+                      :disabled="!user.isLogin"
+                      v-if="userBmPlace.indexOf(place.id) === -1"
                     >
                       <i class="far fa-bookmark fa-lg"></i>
                     </button>
                     <button
                       @click="$store.dispatch('delBookmark', place)"
-                      :disabled="!$store.state.user.isLogin"
+                      :disabled="!user.isLogin"
                       v-else
                     >
                       <i class="fas fa-bookmark fa-lg bookmarked"></i>
@@ -352,11 +351,13 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
+  computed: {
+    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
+  },
   data() {
     return {
-      allDataNum: 0,
-      countNum: 0,
       currentState: "IS_INITIALIZED",
       genre: "",
       genreName: "",
@@ -366,7 +367,6 @@ export default {
       radius: "",
       radiusName: "",
       resultState: "",
-      startNum: 1,
     };
   },
   methods: {
@@ -376,124 +376,108 @@ export default {
         async (position) => {
           this.lat = position.coords.latitude;
           this.lng = position.coords.longitude;
-          this.radiusName = await this.checkRadius();
-          this.genreName = await this.checkGenre();
-          await this.firstSetting();
+          this.checkRadius();
+          this.checkGenre();
+          this.firstSetting();
           await this.searchPlace();
         },
         (error) => {
           this.currentState = "IS_FAILED";
-          console.log(error.message);
         }
       );
     },
     checkRadius() {
-      return this.radius === "2"
-        ? "半径500m以内"
-        : this.radius === "3"
-        ? "半径1km以内"
-        : this.radius === "5"
-        ? "半径3km以内"
-        : "";
+      this.radiusName = "";
+      if (this.radius === "2") {
+        this.radiusName = "半径500m以内";
+      } else if (this.radius === "3") {
+        this.radiusName = "半径1km以内";
+      } else if (this.radius === "5") {
+        this.radiusName = "半径3km以内";
+      }
     },
     checkGenre() {
-      return this.genre === "G001"
-        ? "居酒屋"
-        : this.genre === "G004"
-        ? "和食"
-        : this.genre === "G005"
-        ? "洋食"
-        : this.genre === "G006"
-        ? "Italian&French"
-        : this.genre === "G007"
-        ? "中華"
-        : this.genre === "G008"
-        ? "焼肉"
-        : this.genre === "G017"
-        ? "韓国料理"
-        : this.genre === "G003"
-        ? "創作料理"
-        : this.genre === "G002"
-        ? "Bar"
-        : this.genre === "G009"
-        ? "Asian&Ethnic"
-        : this.genre === "G010"
-        ? "各国料理"
-        : this.genre === "G013"
-        ? "ラーメン"
-        : this.genre === "G016"
-        ? "お好み焼き系"
-        : this.genre === "G014"
-        ? "カフェ"
-        : this.genre === "G015"
-        ? "その他"
-        : "すべて";
+      this.genreName = "";
+      if (this.genre === "G001") {
+        this.genreName = "居酒屋";
+      } else if (this.genre === "G004") {
+        this.genreName = "和食";
+      } else if (this.genre === "G005") {
+        this.genreName = "洋食";
+      } else if (this.genre === "G006") {
+        this.genreName = "Italian&French";
+      } else if (this.genre === "G007") {
+        this.genreName = "中華";
+      } else if (this.genre === "G008") {
+        this.genreName = "焼肉";
+      } else if (this.genre === "G017") {
+        this.genreName = "韓国料理";
+      } else if (this.genre === "G003") {
+        this.genreName = "創作料理";
+      } else if (this.genre === "G002") {
+        this.genreName = "Bar";
+      } else if (this.genre === "G009") {
+        this.genreName = "Asian&Ethnic";
+      } else if (this.genre === "G010") {
+        this.genreName = "各国料理";
+      } else if (this.genre === "G013") {
+        this.genreName = "ラーメン";
+      } else if (this.genre === "G016") {
+        this.genreName = "お好み焼き系";
+      } else if (this.genre === "G014") {
+        this.genreName = "カフェ";
+      } else if (this.genre === "G015") {
+        this.genreName = "その他";
+      } else if (this.genre === "") {
+        this.genreName = "すべて";
+      }
     },
     firstSetting() {
       this.currentState = "IS_FETCHING";
-      this.startNum = 1;
-      this.allDataNum = null;
-      this.countNum = 0;
       this.places = [];
-      console.log(this.genreName);
-      console.log(this.radiusName);
     },
     // 現在地周辺の地図とお店の取得
     async searchPlace() {
-      this.resultState = "GET_DATA";
-      // お店のデータ取得
-      while(this.allDataNum !== this.countNum){      
-        await this.getPlaceData();
-        this.countNum += this.getDataNum;
-        this.startNum = this.countNum + 1;
-        console.log(this.allDataNum);
-        console.log(this.countNum);
-        if (this.allDataNum === 0) {
-        this.resultState = "NO_DATA";
+      let placesTmpCnt = 0;
+      let getAllDataNum = -1;
+      try {
+        while (getAllDataNum !== placesTmpCnt) {
+          const { places100, allDataNum } = await this.getPlaceData(
+            placesTmpCnt
+          );
+          getAllDataNum = allDataNum;
+          placesTmpCnt += places100.length;
+          this.resultState = allDataNum ? "GET_DATA" : "NO_DATA";
+          this.currentState = "IS_FOUND";
+          this.places = this.places.concat(places100);
         }
-        console.log(this.resultState);
+      } catch (e) {
+        this.resultState = "NO_DATA";
+        console.log(e.message);
       }
     },
-    async getPlaceData() {
-      await this.$axios
-        .$get(
-          `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${this.startNum}&count=100`
-        )
-        .then((res) => {
-          this.currentState = "IS_FOUND";
-          const data = res.results.shop;
-          // お店の情報をplacesに格納
-          this.places = data.map((element) => {
-            const placeAccess = element.access ?? "";
-            const placeAddress = element.address ?? "";
-            const placeAverage = element.budget?.average ?? "";
-            const placeCatch = element.genre?.catch ?? "";
-            const placeId = element.id ?? "";
-            const placeName = element.name ?? "";
-            const placeOpen = element.open ?? "";
-            const placePhoto = element.photo?.pc?.l ?? "";
-            const placeUrl = element.urls?.pc ?? "";
-            const placeData = {
-              id: placeId,
-              name: placeName,
-              address: placeAddress,
-              access: placeAccess,
-              average: placeAverage,
-              catchcopy: placeCatch,
-              open: placeOpen,
-              photo: placePhoto,
-              url: placeUrl,
-            };
-            return placeData;
-          });
-          // 取得できる全てのデータ数
-          this.allDataNum = res.results.results_available;
-          // この処理で取得したデータ数
-          this.getDataNum = Number(res.results.results_returned);
-        })
-        .catch(() => {
-          console.log("エラー");
-        });
+    async getPlaceData(placesCnt) {
+      const startIdx = placesCnt + 1;
+      const response = await this.$axios.$get(
+        `/api/hotpepper/gourmet/v1/?key=${process.env.NUXT_APP_HOTPEPPER_APIKEY}&lat=${this.lat}&lng=${this.lng}&range=${this.radius}&genre=${this.genre}&order=4&format=json&start=${startIdx}&count=100`
+      );
+      const places100 = response.results.shop.map((place) => {
+        const placeData = {
+          id: place.id ?? "",
+          name: place.name ?? "",
+          address: place.address ?? "",
+          access: place.access ?? "",
+          average: place.budget?.average ?? "",
+          catchcopy: place.genre?.catch ?? "",
+          open: place.open ?? "",
+          photo: place.photo?.pc?.l ?? "",
+          url: place.urls?.pc ?? "",
+        };
+        return placeData;
+      });
+      // 取得できる全てのデータ数
+      const allDataNum = response.results.results_available;
+      return { places100, allDataNum };
     },
   },
 };
