@@ -58,17 +58,17 @@ const registerUserInformation = (userData) => {
     uid: userData.id,
     email: userData.email,
     name: userData.name,
-    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 };
 
 const getUserServePlaceData = async (userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   const placeIdData = await assignRef
-    .where("user_id", "==", userId)
+    .where("userId", "==", userId)
     .get()
     .then((placeSnapShot) =>
-      placeSnapShot.docs.map((doc) => doc.get("place_id"))
+      placeSnapShot.docs.map((doc) => doc.get("placeId"))
     );
   return placeIdData;
 };
@@ -80,35 +80,35 @@ const registerPlace = async (place, action) => {
     address: place.address,
     access: place.access,
     average: place.average,
-    catchcopy: place.catchcopy,
+    catchCopy: place.catchcopy,
     open: place.open,
     photo: place.photo,
     url: place.url,
-    favorite_count: action === "favorite" ? 1 : 0,
-    bookmark_count: action === "favorite" ? 0 : 1,
-    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+    favoriteCount: action === "favorite" ? 1 : 0,
+    bookmarkCount: action === "favorite" ? 0 : 1,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 };
 
-const registerUserPlace = async (placeId, userId, action) => {
+const registerUserPlace = async (id, uid, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   await assignRef.doc().set({
-    user_id: userId,
-    place_id: placeId,
-    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+    userId: uid,
+    placeId: id,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 };
 
-const registerActivity = async (placeId, userId, userName, actionName) => {
+const registerActivity = async (id, uid, name, actionName) => {
   const batch = db.batch();
   // activitiesに登録
   const activeDocRef = await activeRef.doc();
   batch.set(activeDocRef, {
-    user_id: userId,
-    username: userName,
-    place_id: placeId,
+    userId: uid,
+    userName: name,
+    placeId: id,
     action: actionName,
-    created_at: firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
   // activityCountを+1して更新
   const activeCountDocRef = await activeCountRef.doc("count");
@@ -123,20 +123,20 @@ const deleteUserAction = async (placeId, userId, action) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   // favorites or bookmarks内のdocument削除
   const querySnapshot = await assignRef
-    .where("user_id", "==", userId)
-    .where("place_id", "==", placeId)
+    .where("userId", "==", userId)
+    .where("placeId", "==", placeId)
     .get();
   batch.delete(querySnapshot.docs[0].ref);
   // placeのfavorite_count or bookmark_countを-1する
-  const assignKey = action === "favorite" ? "favorite_count" : "bookmark_count";
+  const assignKey = action === "favorite" ? "favoriteCount" : "bookmarkCount";
   const placeDocRef = await placeRef.doc(placeId);
   batch.update(placeDocRef, {
     [assignKey]: firebase.firestore.FieldValue.increment(-1),
   });
   // activityを削除
   const activeQuerySnapshot = await activeRef
-    .where("user_id", "==", userId)
-    .where("place_id", "==", placeId)
+    .where("userId", "==", userId)
+    .where("placeId", "==", placeId)
     .where("action", "==", action)
     .get();
   batch.delete(activeQuerySnapshot.docs[0].ref);
@@ -150,10 +150,10 @@ const deleteUserAction = async (placeId, userId, action) => {
 };
 
 const getRankingTop = async (action) => {
-  const assignKey = action === "favorite" ? "favorite_count" : "bookmark_count";
+  const assignKey = action === "favorite" ? "favoriteCount" : "bookmarkCount";
   const rankingData = await placeRef
     .orderBy(assignKey, "desc")
-    .orderBy("created_at", "desc")
+    .orderBy("createdAt", "desc")
     .limit(7)
     .get()
     .then((rankingSnapShot) => {
@@ -169,7 +169,7 @@ const registerUserAction = async (place, userId, userName, action) => {
     .then(async (placeDoc) => {
       if (placeDoc.exists) {
         const assignKey =
-          action === "favorite" ? "favorite_count" : "bookmark_count";
+          action === "favorite" ? "favoriteCount" : "bookmarkCount";
         await placeRef.doc(place.id).update({
           [assignKey]: firebase.firestore.FieldValue.increment(1),
         });
@@ -187,21 +187,22 @@ const registerUserAction = async (place, userId, userName, action) => {
 const userRegisteredPlaces = async (action, userId) => {
   const assignRef = action === "favorite" ? favRef : bmRef;
   const querySnapShot = await assignRef
-    .where("user_id", "==", userId)
-    .orderBy("created_at", "desc")
+    .where("userId", "==", userId)
+    .orderBy("createdAt", "desc")
     .get();
   const promises = querySnapShot.docs.map(async (activeDoc) => {
-    const placeId = activeDoc.data().place_id;
+    const placeId = activeDoc.data().placeId;
     const placeData = await placeRef
       .doc(placeId)
       .get()
       .then((placeDoc) => {
-        if (!placeDoc.exists) return;
-        return placeDoc.data();
+        if (placeDoc.exists) {
+          return placeDoc.data();
+        }
       });
     return placeData;
   });
-  const registeredPlaceData = await Promise.all(promises);
+  const registeredPlaceData = (await Promise.all(promises)).filter((el) => el);
   return registeredPlaceData;
 };
 
@@ -216,10 +217,10 @@ const getActivityCountNum = async () => {
 };
 
 const getActivityDetailData = async (activeDoc) => {
-  const placeId = activeDoc.data().place_id;
-  const name = activeDoc.data().username;
+  const placeId = activeDoc.data().placeId;
+  const name = activeDoc.data().userName;
   const userAction = activeDoc.data().action;
-  const createTime = activeDoc.data().created_at.toDate();
+  const createTime = activeDoc.data().createdAt.toDate();
   const createDate = `${createTime.getFullYear()}/${
     createTime.getMonth() + 1
   }/${createTime.getDate()} ${createTime.getHours()}:${createTime.getMinutes()}:${createTime.getSeconds()}`;
@@ -230,11 +231,9 @@ const getActivityDetailData = async (activeDoc) => {
       if (placeDoc.exists) {
         const placeData = {
           ...placeDoc.data(),
-          ...{
-            action: userAction,
-            created_at: createDate,
-            userName: name,
-          },
+          action: userAction,
+          createdAt: createDate,
+          userName: name,
         };
         return placeData;
       }
@@ -244,24 +243,21 @@ const getActivityDetailData = async (activeDoc) => {
 
 const getActivitiesData = async (limit, startToken) => {
   let nextToken = "";
-  let query = activeRef.orderBy("created_at", "desc").limit(limit);
+  let query = activeRef.orderBy("createdAt", "desc").limit(limit);
   if (startToken !== null) {
-    const [seconds, nanoseconds] = startToken.split(":");
-    const timestamp = new firebase.firestore.Timestamp(seconds, nanoseconds);
-    query = query.startAfter(timestamp);
+    query = query.startAfter(startToken);
   }
   const activeSnapShot = await query.get();
   // limitよりも多い件数データがあるならnextTokenを作成しておく
   if (activeSnapShot.docs.length >= limit) {
     const lastData = activeSnapShot.docs[activeSnapShot.docs.length - 1].data();
-    const time = lastData.created_at;
-    nextToken = `${time.seconds}:${time.nanoseconds}`;
+    nextToken = lastData.createdAt;
   }
   const promises = activeSnapShot.docs.map(async (activeDoc) => {
     return await getActivityDetailData(activeDoc);
   });
-  const activityData10 = (await Promise.all(promises)).filter((el) => el);
-  return { activityData10, nextToken };
+  const activityData = (await Promise.all(promises)).filter((el) => el);
+  return { activityData, nextToken };
 };
 
 const FirebaseService = {

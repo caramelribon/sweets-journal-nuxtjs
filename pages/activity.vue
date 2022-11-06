@@ -67,7 +67,7 @@
                   {{ information.action }}
                 </p>
                 <p class="text-sm mx-1 text-lightgray lora">
-                  {{ information.created_at }}
+                  {{ information.createdAt }}
                 </p>
               </span>
             </span>
@@ -99,7 +99,7 @@
                           my-2
                         "
                       >
-                        {{ information.catchcopy }}
+                        {{ information.catchCopy }}
                       </p>
                     </div>
                     <p class="text-navyblue kaisei-medium text-xs my-2">
@@ -216,24 +216,26 @@ export default {
   methods: {
     // さらにデータを取得
     async getMoreActivityData() {
-      if (this.countNum < 10 && this.countNum > 0) {
-        await this.getActivityData(this.countNum);
-        this.isAllData = true;
-      } else {
-        await this.getActivityData(10);
+      try {
+        if (this.countNum < 10 && this.countNum > 0) {
+          await this.getActivityData(this.countNum);
+          this.isAllData = true;
+        } else {
+          await this.getActivityData(10);
+        }
+      } catch (e) {
+        alert("データを取得できませんでした");
       }
     },
     // activityデータを取得
     async getActivityData(num) {
-      const activityData = await FirebaseService.getActivitiesData(
+      const getActivityData = await FirebaseService.getActivitiesData(
         num,
         this.nextToken
-      ).catch((err) => {
-        console.log("Can not catch first activity data", err);
-      });
-      this.activities = this.activities.concat(activityData.activityData10);
-      this.nextToken = activityData.nextToken;
-      this.countNum -= activityData.activityData10.length;
+      );
+      this.activities = this.activities.concat(getActivityData.activityData);
+      this.nextToken = getActivityData.nextToken;
+      this.countNum -= getActivityData.activityData.length;
     },
     async onFavorite(place) {
       await this.$store.dispatch("onFavorite", place);
@@ -245,11 +247,9 @@ export default {
       // activitiesにデータを追加
       const placeData = {
         ...place,
-        ...{
-          userName: this.user.name,
-          created_at: createTime,
-          action: "favorite",
-        },
+        userName: this.user.name,
+        createdAt: createTime,
+        action: "favorite",
       };
       this.activities.unshift(placeData);
     },
@@ -276,11 +276,9 @@ export default {
       // activitiesにデータを追加
       const placeData = {
         ...place,
-        ...{
-          userName: this.user.name,
-          created_at: createTime,
-          action: "mark",
-        },
+        userName: this.user.name,
+        createdAt: createTime,
+        action: "mark",
       };
       this.activities.unshift(placeData);
     },
