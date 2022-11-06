@@ -1,4 +1,3 @@
-import { reject, resolve } from "core-js/fn/promise";
 import firebase from "~/plugins/firebase";
 
 const db = firebase.firestore();
@@ -234,106 +233,61 @@ export const userRegisteredPlaces = async (action, userId) => {
   return placeData;
 };
 
-export const getActivityNumber = async () => {
-  const activityNumber = activeCountRef
+export const getActivityCountNum = async () => {
+  const activityCountNum = await activeCountRef
     .doc("count")
     .get()
     .then((doc) => {
       return doc.data().activityCount;
     });
-  return activityNumber;
+  return activityCountNum;
 };
 
-const getActivityDetailData = async (doc) => {
-  const placeid = doc.data().place_id;
-  console.log(placeid);
-  const username = doc.data().username;
-  const useraction = doc.data().action;
-  const createtime = doc.data().create_at.toDate();
-  const createdate = `${createtime.getFullYear()}/${
-    createtime.getMonth() + 1
-  }/${createtime.getDate()} ${createtime.getHours()}:${createtime.getMinutes()}:${createtime.getSeconds()}`;
-  let placeData = null;
-  let placeId = null;
-  let placeName = null;
-  let placeAddress = null;
-  let placeAccess = null;
-  let placeAverage = null;
-  let placeCatchcopy = null;
-  let placeOpen = null;
-  let placePhoto = null;
-  let placeUrl = null;
-  await firebase
-    .firestore()
-    .collection("places")
-    .doc(placeid)
+const getActivityDetailData = async (activeDoc) => {
+  const placeId = activeDoc.data().place_id;
+  const name = activeDoc.data().username;
+  const userAction = activeDoc.data().action;
+  const createTime = activeDoc.data().created_at.toDate();
+  const createDate = `${createTime.getFullYear()}/${
+    createTime.getMonth() + 1
+  }/${createTime.getDate()} ${createTime.getHours()}:${createTime.getMinutes()}:${createTime.getSeconds()}`;
+  const activityData = await placeRef
+    .doc(placeId)
     .get()
-    .then((docRef) => {
-      if (docRef !== null) {
-        placeData = docRef.data();
-        placeId = placeData.id;
-        placeName = placeData.name;
-        placeAddress = placeData.address;
-        placeAccess = placeData.access;
-        placeAverage = placeData.average;
-        placeCatchcopy = placeData.catchcopy;
-        placeOpen = placeData.open;
-        placePhoto = placeData.photo;
-        placeUrl = placeData.url;
+    .then((placeDoc) => {
+      if (placeDoc.exists) {
+        const placeData = {
+          ...placeDoc.data(),
+          ...{
+            action: userAction,
+            created_at: createDate,
+            userName: name,
+          },
+        };
+        return placeData;
       }
     });
-
-  return {
-    action: useraction,
-    create_at: createdate,
-    userName: username,
-    id: placeId,
-    name: placeName,
-    address: placeAddress,
-    access: placeAccess,
-    average: placeAverage,
-    catchcopy: placeCatchcopy,
-    open: placeOpen,
-    photo: placePhoto,
-    url: placeUrl,
-  };
+  return activityData;
 };
 
-// eslint-disable-next-line
-export async function getActivity(limit, pagingToken) {
-  return new Promise((resolve, reject) => {
-    let query = activeRef.orderBy("created_at", "desc").limit(limit);
-    if (pagingToken !== null) {
-      const [seconds, nanoseconds] = pagingToken.split(":");
-      const timestamp = new firebase.firestore.Timestamp(seconds, nanoseconds);
-      query = query.startAfter(timestamp);
-    }
-
-    query
-      .get()
-      .then(async (snapShot) => {
-        // limitよりも多い件数データがあるならnextTokenを作成しておく
-        let nextToken = null;
-        if (snapShot.docs.length >= limit) {
-          const lastData = snapShot.docs[snapShot.docs.length - 1].data();
-          const time = lastData.create_at;
-          nextToken = `${time.seconds}:${time.nanoseconds}`;
-        }
-        const infoPromises = [];
-        for (let i = 0; i < snapShot.docs.length; i += 1) {
-          const doc = snapShot.docs[i];
-          infoPromises.push(getActivityDetailData(doc));
-          console.log(infoPromises);
-        }
-        // 全ての詳細データが取得するまで待つ
-        const infos = await Promise.all(infoPromises);
-
-        console.log(infos, nextToken);
-        resolve({ BuffData: infos, nextPageToken: nextToken });
-      })
-      .catch((err) => {
-        console.log("エラーが発見されました：データ取得時", err);
-        reject(new Error("firebaseからのデータ取得エラー"));
-      });
+export const getActivitiesData = async (limit, startToken) => {
+  let nextToken = "";
+  let query = activeRef.orderBy("created_at", "desc").limit(limit);
+  if (startToken !== null) {
+    const [seconds, nanoseconds] = startToken.split(":");
+    const timestamp = new firebase.firestore.Timestamp(seconds, nanoseconds);
+    query = query.startAfter(timestamp);
+  }
+  const activeSnapShot = await query.get();
+  // limitよりも多い件数データがあるならnextTokenを作成しておく
+  if (activeSnapShot.docs.length >= limit) {
+    const lastData = activeSnapShot.docs[activeSnapShot.docs.length - 1].data();
+    const time = lastData.created_at;
+    nextToken = `${time.seconds}:${time.nanoseconds}`;
+  }
+  const promises = activeSnapShot.docs.map(async (activeDoc) => {
+    return await getActivityDetailData(activeDoc);
   });
-}
+  const activityData10 = await Promise.all(promises);
+  return { activityData10, nextToken };
+};

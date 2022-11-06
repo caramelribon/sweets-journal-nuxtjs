@@ -172,9 +172,12 @@
           </div>
         </div>
       </div>
-      <div id="observe_element" class="m-2"></div>
-      <div class="loader-wrap" v-show="noData">
-        <div class="text no-data text-center">no data</div>
+      <div id="observe_element" class="m-5"></div>
+      <div class="loader-wrap" v-show="!isExistData">
+        <div class="text no-data text-center">NO DATA</div>
+      </div>
+      <div class="loader-wrap" v-show="isAllData">
+        <div class="text no-data text-center">ALL DATA</div>
       </div>
     </div>
     <app-footer />
@@ -182,75 +185,57 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import { getActivityNumber, getActivityData } from "~/services/firebaseService";
+import {
+  getActivityCountNum,
+  getActivitiesData,
+} from "~/services/firebaseService";
 export default {
   middleware: "auth",
-  computed: {
-    ...mapGetters(["user", "userFavPlace", "userBmPlace"]),
-  },
   data() {
     return {
       activities: [],
-      // Activityデータの数
-      countNum: 0,
-      allDataNum: null,
-      countNum: 0,
-      pagingToken: null,
-      nextData: [],
-      // データがあるかどうか
-      noData: false,
-      // Intersection Obsever
-      observer: null,
+      countNum: -1,
+      nextToken: null,
+      isAllData: false,
+      isExistData: true,
     };
   },
   async created() {
-    this.allDataNum = await getActivityNumber();
-    if (this.allDataNum === 0) {
-      this.noData = true;
-    } else {
-      const getData = await getActivityData(10, this.pagingToken).catch(
-        (err) => {
-          console.log("Can not catch first activity data", err);
-        }
-      );
-      this.activities = getData.buffData;
-      this.pagingToken = getData.nextPageToken;
-      this.countNum = this.activities.length;
-      console.log(this.activities);
-      console.log(this.countNum);
+    const allDataNum = await getActivityCountNum();
+    if (allDataNum === 0) {
+      this.isExistData = false;
     }
+    this.countNum = allDataNum;
+    await this.getActivityData(10);
   },
   mounted() {
-    const options = {
-      rootMargin: "0px",
-      threshold: 0.1,
-    };
-    this.observer = new IntersectionObserver(this.infiniteScroll, options);
-    // 監視される要素をtargetにする
     const target = document.getElementById("observe_element");
-    // 監視対象を監視している
-    this.observer.observe(target);
+    const options = {
+      threshold: 1,
+    };
+    const observer = new IntersectionObserver(this.infiniteScroll, options);
+    observer.observe(target);
   },
   methods: {
     // infinite scroll
     async infiniteScroll() {
-      if (this.countNum === this.allDataNum) {
-        console.log("ALL DATA GET");
-        return;
+      if (this.countNum < 10 && this.countNum > 0) {
+        await this.getActivityData(this.countNum);
+      } else if (this.countNum === 0) {
+        this.isAllData = true;
       } else {
-        const addActivityData = await getActivityData(
-          10,
-          this.pagingToken
-        ).catch((err) => {
-          console.log("Can not catch first activity data", err);
-        });
-        this.activities = [...this.activities, addActivityData.buffData];
-        this.pagingToken = addActivityData.nextPageToken;
-        this.countNum = this.activities.length;
-        console.log(this.activities);
-        console.log(this.countNum);
+        await this.getActivityData(10);
       }
+    },
+    async getActivityData(num) {
+      const activityData = await getActivitiesData(num, this.nextToken).catch(
+        (err) => {
+          console.log("Can not catch first activity data", err);
+        }
+      );
+      this.activities = this.activities.concat(activityData.activityData10);
+      this.nextToken = activityData.nextToken;
+      this.countNum -= activityData.activityData10.length;
     },
     onFavorite(place) {
       this.$store.dispatch("onFavorite", place);
@@ -260,17 +245,27 @@ export default {
         now.getMonth() + 1
       }/${now.getDate()}/${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
       // activitiesにデータを追加
-      const placeData = place.concat({
-        userName: this.user.name,
-        created_at: createTime,
-        action: "favorite",
-      });
+      const placeData = {
+        ...place,
+        ...{
+          userName: this.$store.state.user.name,
+          created_at: createTime,
+          action: "favorite",
+        },
+      };
       this.activities.unshift(placeData);
     },
     delFavorite(place) {
       this.$store.dispatch("delFavorite", place);
+      // 削除するデータ
+      const deleteData = this.activities.find(
+        (placeData) =>
+          placeData.id === place.id &&
+          placeData.userName === this.$store.state.user.name &&
+          placeData.action === "favorite"
+      );
       this.activities = this.activities.filter(
-        (placeData) => placeData.id !== place.id
+        (placeData) => placeData !== deleteData
       );
     },
     onBookmark(place) {
@@ -281,17 +276,27 @@ export default {
         now.getMonth() + 1
       }/${now.getDate()}/${now.getHours()}/${now.getMinutes()}/${now.getSeconds()}`;
       // activitiesにデータを追加
-      const placeData = place.concat({
-        userName: this.user.name,
-        created_at: createTime,
-        action: "bookmark",
-      });
+      const placeData = {
+        ...place,
+        ...{
+          userName: this.$store.state.user.name,
+          created_at: createTime,
+          action: "mark",
+        },
+      };
       this.activities.unshift(placeData);
     },
     delBookmark(place) {
       this.$store.dispatch("delBookmark", place);
+      // 削除するデータ
+      const deleteData = this.activities.find(
+        (placeData) =>
+          placeData.id === place.id &&
+          placeData.userName === this.$store.state.user.name &&
+          placeData.action === "mark"
+      );
       this.activities = this.activities.filter(
-        (placeData) => placeData.id !== place.id
+        (placeData) => placeData !== deleteData
       );
     },
   },
