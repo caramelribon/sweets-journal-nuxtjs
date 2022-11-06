@@ -184,6 +184,27 @@ const registerUserAction = async (place, userId, userName, action) => {
     });
 };
 
+const userRegisteredPlaces = async (action, userId) => {
+  const assignRef = action === "favorite" ? favRef : bmRef;
+  const querySnapShot = await assignRef
+    .where("user_id", "==", userId)
+    .orderBy("created_at", "desc")
+    .get();
+  const promises = querySnapShot.docs.map(async (activeDoc) => {
+    const placeId = activeDoc.data().place_id;
+    const placeData = await placeRef
+      .doc(placeId)
+      .get()
+      .then((placeDoc) => {
+        if (!placeDoc.exists) return;
+        return placeDoc.data();
+      });
+    return placeData;
+  });
+  const registeredPlaceData = await Promise.all(promises);
+  return registeredPlaceData;
+};
+
 const FirebaseService = {
   onLogin,
   onSignUp,
@@ -193,6 +214,7 @@ const FirebaseService = {
   deleteUserAction,
   getRankingTop,
   getUserServePlaceData,
+  userRegisteredPlaces,
 };
 
 export default FirebaseService;

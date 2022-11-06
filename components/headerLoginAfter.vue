@@ -41,7 +41,8 @@
                   <div class="flex justify-center items-center">
                     <!-- User Profile (ユーザのプロフィールに繋がるボタン) -->
                     <div class="signup mr-1">
-                      <button
+                      <n-link
+                        :to="`/users/${user.id}`"
                         class="
                           block
                           leading-none
@@ -58,7 +59,7 @@
                         "
                       >
                         Profile
-                      </button>
+                      </n-link>
                     </div>
                     <!-- Logout (ログアウトボタン) -->
                     <div class="logout">
@@ -114,9 +115,7 @@ import { mapGetters } from "vuex";
 import firebase from "~/plugins/firebase";
 export default {
   computed: {
-    ...mapGetters({
-      user: "user",
-    }),
+    ...mapGetters(["user"]),
   },
   data() {
     return {
