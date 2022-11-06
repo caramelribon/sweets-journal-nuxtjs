@@ -237,8 +237,8 @@ export const getActivityCountNum = async () => {
   const activityCountNum = await activeCountRef
     .doc("count")
     .get()
-    .then((doc) => {
-      return doc.data().activityCount;
+    .then((activeDoc) => {
+      return activeDoc.data().activityCount;
     });
   return activityCountNum;
 };

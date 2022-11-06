@@ -172,12 +172,14 @@
           </div>
         </div>
       </div>
-      <div id="observe_element" class="m-5"></div>
-      <div class="loader-wrap" v-show="!isExistData">
-        <div class="text no-data text-center">NO DATA</div>
+      <div class="loader-wrap text-center" v-if="!isAllData">
+        <button class="text state-data" @click="getMoreActivityData">More</button>
       </div>
-      <div class="loader-wrap" v-show="isAllData">
-        <div class="text no-data text-center">ALL DATA</div>
+      <div class="loader-wrap text-center" v-if="!isExistData">
+        <div class="text state-data">NO DATA</div>
+      </div>
+      <div class="loader-wrap text-center" v-if="isAllData">
+        <div class="text state-data">ALL DATA</div>
       </div>
     </div>
     <app-footer />
@@ -208,25 +210,17 @@ export default {
     this.countNum = allDataNum;
     await this.getActivityData(10);
   },
-  mounted() {
-    const target = document.getElementById("observe_element");
-    const options = {
-      threshold: 1,
-    };
-    const observer = new IntersectionObserver(this.infiniteScroll, options);
-    observer.observe(target);
-  },
   methods: {
-    // infinite scroll
-    async infiniteScroll() {
+    // さらにデータを取得
+    async getMoreActivityData() {
       if (this.countNum < 10 && this.countNum > 0) {
         await this.getActivityData(this.countNum);
-      } else if (this.countNum === 0) {
         this.isAllData = true;
       } else {
         await this.getActivityData(10);
       }
     },
+    // activityデータを取得
     async getActivityData(num) {
       const activityData = await getActivitiesData(num, this.nextToken).catch(
         (err) => {
@@ -323,7 +317,7 @@ export default {
     0 5px #545965, 0 6px #515661, 0 7px #4e535e, 0 8px #4b505b, 0 9px #454954,
     0 10px 8px #41454f;
 }
-.no-data {
+.state-data {
   color: #6b717f;
   font-family: "Lora", serif;
   font-weight: bold;
