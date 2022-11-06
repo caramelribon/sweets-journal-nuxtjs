@@ -10,10 +10,7 @@
           <div class="actions-menu">
             <!-- Home Button (ホームボタン) -->
             <button class="btn btn--home bg-none">
-              <n-link
-                to="/"
-                class="block lora-bold text-lightgray text-lg"
-              >
+              <n-link to="/" class="block lora-bold text-lightgray text-lg">
                 Top
               </n-link>
             </button>
@@ -45,7 +42,7 @@
                     <!-- User Profile (ユーザのプロフィールに繋がるボタン) -->
                     <div class="signup mr-1">
                       <n-link
-                        :to="`/users/${ $store.state.user.id}`"
+                        :to="`/users/${$store.state.user.id}`"
                         class="
                           block
                           leading-none
@@ -101,7 +98,8 @@
             </div>
             <!-- Activity Button (アクティビティボタン) -->
             <button class="btn btn--activity">
-              <n-link to="/activity"
+              <n-link
+                to="/activity"
                 class="block lora-bold text-lightgray text-lg"
               >
                 Activity
@@ -139,7 +137,7 @@ export default {
           this.$store.commit("signOut");
           this.$router.push("/");
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
           alert("ログアウトに失敗しました");
         });

@@ -173,7 +173,9 @@
         </div>
       </div>
       <div class="loader-wrap text-center" v-if="!isAllData">
-        <button class="text state-data" @click="getMoreActivityData">More</button>
+        <button class="text state-data" @click="getMoreActivityData">
+          More
+        </button>
       </div>
       <div class="loader-wrap text-center" v-if="!isExistData">
         <div class="text state-data">NO DATA</div>
